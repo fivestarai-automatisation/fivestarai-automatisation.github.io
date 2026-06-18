@@ -56,6 +56,15 @@
       background: radial-gradient(circle, rgba(245,200,66,0.06) 0%, transparent 70%);
       pointer-events: none;
     }
+    .hero-back {
+      position: absolute;
+      top: 96px; left: 50%;
+      transform: translateX(-50%);
+      color: var(--muted); font-size: 14px;
+      text-decoration: none; transition: color 0.2s;
+      z-index: 2;
+    }
+    .hero-back:hover { color: var(--gold); }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
       background: rgba(245,200,66,0.1);
@@ -378,6 +387,12 @@
       text-decoration: none; transition: all 0.2s;
     }
     .btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+    .cta-back { margin-top: 20px; }
+    .cta-back a {
+      color: var(--muted); font-size: 14px;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .cta-back a:hover { color: var(--gold); }
 
     /* FOOTER */
     footer {
@@ -417,6 +432,7 @@
 
   <!-- HERO -->
   <div class="hero">
+    <a href="index.html" class="hero-back">← Retour</a>
     <div class="hero-badge">🇨🇦 Québec</div>
     <h1>Deux fondateurs,<br><em>une obsession.</em></h1>
     <p>Formés dans la vente terrain, on a vu trop de bons commerces se faire dépasser en ligne par des concurrents moins bons — et on a construit la solution.</p>
@@ -611,8 +627,8 @@
   <section class="cta-bottom">
     <div class="container">
       <h2>On travaille avec<br><em>des gens comme vous.</em></h2>
-      <p>Un commerce local qui veut arrêter de laisser des avis Google sur la table. Écrivez-nous — on vous répond dans les 24 heures.</p>
-      <a href="mailto:support@fivestarai.ca" class="btn-primary">✉️ support@fivestarai.ca</a>
+      <p>Un commerce local qui veut arrêter de laisser des avis Google sur la table. Voyez comment ça fonctionne pour votre commerce.</p>
+      <a href="forfaits.html" class="btn-primary">Commencer maintenant →</a>
     </div>
   </section>
 
