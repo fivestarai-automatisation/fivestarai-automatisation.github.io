@@ -8,6 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const _sb = window.supabase.createClient("https://teceosbjdipzvvkmxixd.supabase.co","sb_publishable_uY6yWPVgjkk9TsG1kj-smA_4Hvsa5A9")
+  </script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#050810;--surface:#090d1a;--surface2:#0e1322;--border:#16203a;--gold:#f5c842;--gold2:#d4a800;--text:#e2e6f0;--muted:#6b7591;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;--orange:#f97316}
@@ -267,12 +271,20 @@
       .content{padding:16px}
       .topbar{padding:0 16px}
     }
+
+    /* LOADING */
+    .global-loader{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .loader-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
 
+<!-- GLOBAL LOADER (pendant vérification session) -->
+<div class="global-loader" id="global-loader"><div class="loader-spin"></div></div>
+
 <!-- AUTH PAGE -->
-<div id="auth-page">
+<div id="auth-page" style="display:none">
   <div class="auth-wrap">
     <div class="auth-glow"></div>
     <div class="auth-grid"></div>
@@ -411,19 +423,14 @@ function closeSidebar(){
   document.getElementById('ham-btn').classList.remove('open')
 }
 
-// ── INIT EMAILJS ──
-(function(){
-  try {
-    if(window.emailjs) emailjs.init({publicKey:'YOUR_PUBLIC_KEY'})
-  } catch(e) { console.log('EmailJS init skip'); }
-})()
-
 // ── DONNÉES ──
 const PLANS={
   starter:{name:'Starter',price:297,tag:'pt-starter',dashboard:false,rapport:false,smsPromo:false,recrutement:false},
   pro:{name:'Pro',price:499,tag:'pt-pro',dashboard:true,rapport:true,smsPromo:true,recrutement:false},
   premium:{name:'Premium',price:599,tag:'pt-premium',dashboard:true,rapport:true,smsPromo:true,recrutement:true},
 }
+
+// Comptes démo (raccourci local, ne touchent pas Supabase)
 const DEMOS={
   'demo@restaurant.com':{
     pass:'demo123',prenom:'Marco',nom:'Rossi',commerce:'Restaurant Le Bon Goût',type:'Restaurant',tel:'+1 514 555-0101',plan:'pro',newAccount:false,
@@ -469,6 +476,56 @@ let user=null
 let selectedPlan='pro'
 let notifOpen=false
 
+// ════════════════════════════════════════════════════
+// SESSION — vérifie si l'utilisateur est déjà connecté
+// (utile au retour du lien de confirmation email)
+// ════════════════════════════════════════════════════
+async function initSession(){
+  try{
+    const {data,error} = await _sb.auth.getSession()
+    if(data && data.session && data.session.user){
+      await loadProfileAndLaunch(data.session.user)
+      document.getElementById('global-loader').style.display='none'
+      return
+    }
+  }catch(e){
+    console.log('Aucune session active', e)
+  }
+  document.getElementById('global-loader').style.display='none'
+  document.getElementById('auth-page').style.display='block'
+}
+
+async function loadProfileAndLaunch(authUser){
+  const {data:profile, error} = await _sb.from('profiles').select('*').eq('id', authUser.id).single()
+  if(error || !profile){
+    console.log('Profil introuvable pour cet utilisateur', error)
+    document.getElementById('auth-page').style.display='block'
+    return
+  }
+  user = buildUserFromProfile(profile)
+  document.getElementById('dash-page').style.display='block'
+  launchDash()
+}
+
+function buildUserFromProfile(profile){
+  return {
+    id: profile.id,
+    email: profile.email,
+    prenom: profile.prenom,
+    nom: profile.nom,
+    commerce: profile.commerce,
+    type: profile.type_commerce,
+    tel: profile.tel,
+    plan: profile.plan || 'starter',
+    newAccount: true,
+    stats:{noteGoogle:0,noteAvant:0,avisTotal:0,avisPos:0,avisNeg:0,smsSent:0,smsConv:0,clients:0,moisActif:0},
+    avis:[],
+    sms:[],
+    chartData:[0,0,0,0,0,0],
+    notifs:[]
+  }
+}
+
 // ── AUTH ──
 function switchTab(tab){
   document.getElementById('auth-form-login').style.display=tab==='login'?'block':'none'
@@ -494,65 +551,59 @@ function showMsg(msg,type='err'){
   document.getElementById('auth-msg').innerHTML=`<div class="auth-${type}">${msg}</div>`
 }
 
-// ── INIT SESSION ──
-async function initSession(){
-  try{
-    const {data}=await _sb.auth.getSession()
-    if(data&&data.session&&data.session.user){
-      await loadProfileAndLaunch(data.session.user);return
-    }
-  }catch(e){console.log('Pas de session',e)}
-  document.getElementById('auth-page').style.display='block'
-}
-
-async function loadProfileAndLaunch(authUser){
-  const {data:profile,error}=await _sb.from('profiles').select('*').eq('id',authUser.id).single()
-  if(error||!profile){document.getElementById('auth-page').style.display='block';return}
-  user=buildUserFromProfile(profile)
-  document.getElementById('auth-page').style.display='none'
-  document.getElementById('dash-page').style.display='block'
-  launchDash()
-}
-
-function buildUserFromProfile(profile){
-  return{
-    id:profile.id,email:profile.email,
-    prenom:profile.prenom||'',nom:profile.nom||'',
-    commerce:profile.commerce||'Mon commerce',type:profile.type_commerce||'Commerce',
-    tel:profile.tel||'',plan:profile.plan||'starter',newAccount:true,
-    stats:{noteGoogle:0,noteAvant:0,avisTotal:0,avisPos:0,avisNeg:0,smsSent:0,smsConv:0,clients:0,moisActif:0},
-    avis:[],sms:[],chartData:[0,0,0,0,0,0],notifs:[]
-  }
-}
-
+// ════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════
 async function doLogin(){
   const email=document.getElementById('l-email').value.trim()
   const pass=document.getElementById('l-pass').value
-  if(!email||!pass){showMsg('Entrez votre email et mot de passe.');return}
 
-  // Comptes démo
+  if(!email||!pass){showMsg('Veuillez entrer votre email et mot de passe.');return}
+
+  // 1. Comptes démo (raccourci local — pas de Supabase)
   const acc=DEMOS[email]
-  if(acc&&acc.pass===pass){user={email,...acc};document.getElementById('dash-page').style.display='block';launchDash();return}
-
-  const btn=document.getElementById('btn-login')
-  btn.disabled=true;btn.textContent='Connexion...'
-
-  const {data,error}=await _sb.auth.signInWithPassword({email,password:pass})
-  if(error){
-    btn.disabled=false;btn.textContent='Se connecter →'
-    showMsg(error.message.includes('Email not confirmed')?'Confirmez votre email avant de vous connecter.':'Email ou mot de passe incorrect.')
+  if(acc && acc.pass===pass){
+    user={email,...acc}
+    document.getElementById('dash-page').style.display='block'
+    launchDash()
     return
   }
 
-  const {data:profile,error:pe}=await _sb.from('profiles').select('*').eq('id',data.user.id).single()
-  if(pe||!profile){btn.disabled=false;btn.textContent='Se connecter →';showMsg('Profil introuvable. Contactez admin@fivestarai.ca');return}
+  // 2. Vrai compte Supabase
+  const btn=document.getElementById('btn-login')
+  btn.disabled=true
+  btn.textContent='Connexion...'
 
-  user=buildUserFromProfile(profile)
-  btn.disabled=false;btn.textContent='Se connecter →'
+  const {data, error} = await _sb.auth.signInWithPassword({email, password: pass})
+
+  if(error){
+    btn.disabled=false
+    btn.textContent='Se connecter →'
+    if(error.message.includes('Email not confirmed')){
+      showMsg('Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte de réception (et vos spams).')
+    }else{
+      showMsg('Email ou mot de passe incorrect.')
+    }
+    return
+  }
+
+  const {data:profile, error:profileError} = await _sb.from('profiles').select('*').eq('id', data.user.id).single()
+
+  if(profileError || !profile){
+    btn.disabled=false
+    btn.textContent='Se connecter →'
+    showMsg('Profil introuvable. Contactez le support : admin@fivestarai.ca')
+    return
+  }
+
+  user = buildUserFromProfile(profile)
   document.getElementById('dash-page').style.display='block'
   launchDash()
 }
 
+// ════════════════════════════════════════════════════
+// SIGNUP
+// ════════════════════════════════════════════════════
 async function doSignup(){
   const prenom=document.getElementById('s-prenom').value.trim()
   const nom=document.getElementById('s-nom').value.trim()
@@ -569,10 +620,13 @@ async function doSignup(){
   const btn=document.getElementById('btn-signup')
   btn.disabled=true
   btn.textContent='Création en cours...'
-  showMsg('')
+  showMsg('') // clear
 
   const p=PLANS[selectedPlan]
 
+  // 1. Créer le compte Auth — le trigger SQL on_auth_user_created
+  // crée automatiquement la ligne profiles à partir de ces métadonnées.
+  // Resend envoie l'email de confirmation automatiquement.
   const {data:authData, error:authError} = await _sb.auth.signUp({
     email: email,
     password: pass,
@@ -594,10 +648,10 @@ async function doSignup(){
   if(authError){
     btn.disabled=false
     btn.textContent='Créer mon compte →'
-    if(authError.message.includes('already registered')||authError.message.includes('User already registered')){
+    if(authError.message.includes('already registered') || authError.message.includes('User already registered')){
       showMsg('Un compte existe déjà avec cet email. <a href="#" onclick="switchTab(\'login\');return false" style="color:var(--gold)">Se connecter →</a>','err')
     }else{
-      showMsg('Erreur : '+authError.message)
+      showMsg('Erreur lors de la création du compte : '+authError.message)
     }
     return
   }
@@ -605,10 +659,11 @@ async function doSignup(){
   if(!authData.user){
     btn.disabled=false
     btn.textContent='Créer mon compte →'
-    showMsg('Erreur inattendue. Réessayez ou contactez admin@fivestarai.ca')
+    showMsg('Erreur inattendue lors de la création du compte. Réessayez ou contactez admin@fivestarai.ca')
     return
   }
 
+  // 2. Afficher l'écran de confirmation email
   document.getElementById('auth-card').innerHTML=`
     <div class="email-confirm-screen">
       <div class="ec-icon">📧</div>
@@ -617,9 +672,9 @@ async function doSignup(){
       <div class="ec-email-box">${email}</div>
       <div class="ec-steps">
         <div class="ec-step"><span style="color:var(--green)">✅</span> Compte créé — ${commerce} · Forfait ${p.name}</div>
-        <div class="ec-step"><span style="color:var(--gold)">📧</span> Cliquez le lien dans votre email pour activer votre compte</div>
-        <div class="ec-step"><span style="color:var(--gold)">📞</span> Un fondateur vous contacte dans les <strong>24h</strong> pour le paiement et le setup</div>
-        <div class="ec-step"><span style="color:var(--muted)">🚀</span> Système actif dès le setup complété</div>
+        <div class="ec-step"><span style="color:var(--gold)">📧</span> Email de confirmation envoyé</div>
+        <div class="ec-step"><span style="color:var(--muted)">📞</span> Un fondateur vous contacte dans les 24h</div>
+        <div class="ec-step"><span style="color:var(--muted)">🚀</span> Setup en 10 minutes · Résultats cette semaine</div>
       </div>
       <button class="btn-resend" onclick="resendEmail('${email}')">Renvoyer l'email</button>
       <div style="margin-top:16px;font-size:13px;color:var(--muted)">Déjà confirmé ? <span style="color:var(--gold);cursor:pointer" onclick="location.reload()">Se connecter →</span></div>
@@ -629,8 +684,11 @@ async function doSignup(){
 
 async function resendEmail(email){
   const {error} = await _sb.auth.resend({type:'signup', email: email})
-  if(error){alert('Erreur : '+error.message)}
-  else{alert('Email de confirmation renvoyé à '+email)}
+  if(error){
+    alert('Erreur lors du renvoi : '+error.message)
+  }else{
+    alert('Email de confirmation renvoyé à '+email)
+  }
 }
 
 // ── DASHBOARD ──
@@ -678,8 +736,8 @@ function toggleNotif(){
 document.addEventListener('click',e=>{if(!e.target.closest('#notif-btn')&&!e.target.closest('#notif-panel'))document.getElementById('notif-panel').classList.remove('show')})
 
 // ── NAVIGATION ──
-const pageIcons={overview:'📊',activite:'⚡',avis:'⭐',sms:'📱',qrcode:'📲',rapport:'📈',smsPromo:'📣',recrutement:'👥',forfait:'💳',parametres:'⚙️',aide:'💬'}
-const pageTitles={overview:'Tableau de bord',activite:'Activité récente',avis:'Avis Google',sms:'SMS envoyés',qrcode:'Mon QR Code',rapport:'Rapport mensuel',smsPromo:'SMS promotionnel',recrutement:'Recrutement IA',forfait:'Mon forfait',parametres:'Paramètres',aide:'Aide & support'}
+const pageIcons={overview:'📊',activite:'⚡',avis:'⭐',sms:'📱',qrcode:'📲',rapport:'📈',smsPromo:'📣',recrutement:'👥',forfait:'💳',parametres:'⚙️',aide:'💬',lien:'🔗'}
+const pageTitles={overview:'Tableau de bord',activite:'Activité récente',avis:'Avis Google',sms:'SMS envoyés',qrcode:'Mon QR Code',rapport:'Rapport mensuel',smsPromo:'SMS promotionnel',recrutement:'Recrutement IA',forfait:'Mon forfait',parametres:'Paramètres',aide:'Aide & support',lien:'Mon lien d\'avis'}
 
 function goPage(page,el){
   const p=PLANS[user.plan]
@@ -688,7 +746,7 @@ function goPage(page,el){
     updateNav(el,page);return
   }
   updateNav(el,page)
-  const renders={overview:renderOverview,activite:renderActivite,avis:renderAvis,sms:renderSMS,qrcode:renderQR,rapport:renderRapport,smsPromo:renderSMSPromo,recrutement:renderRecrutement,forfait:renderForfait,parametres:renderParametres,aide:renderAide}
+  const renders={overview:renderOverview,activite:renderActivite,avis:renderAvis,sms:renderSMS,qrcode:renderQR,rapport:renderRapport,smsPromo:renderSMSPromo,recrutement:renderRecrutement,forfait:renderForfait,parametres:renderParametres,aide:renderAide,lien:renderLien}
   if(renders[page])renders[page]()
 }
 
@@ -705,7 +763,29 @@ function set(html){document.getElementById('page-content').innerHTML=html}
 function renderOverview(){
   const s=user.stats,p=PLANS[user.plan]
   const conv=s.smsSent>0?Math.round(s.smsConv/s.smsSent*100):0
-  const chartMax=Math.max(...(user.chartData||[1]))
+  const chartMax=Math.max(...(user.chartData||[1]),1)
+
+  if(user.newAccount && s.avisTotal===0 && s.smsSent===0){
+    set(`
+    ${!p.dashboard?`<div class="locked-card"><div class="locked-icon">📊</div><div class="locked-title">Dashboard complet disponible en Pro et Premium</div><div class="locked-text">Passez au forfait Pro pour accéder aux statistiques détaillées, graphiques et rapports de performance.</div><button class="btn-upgrade" onclick="goPage('forfait',null)">Voir les forfaits →</button></div>`:''}
+    <div class="card" style="text-align:center;padding:48px 28px">
+      <div style="font-size:42px;margin-bottom:16px">🚀</div>
+      <div style="font-size:19px;font-weight:800;color:#fff;margin-bottom:10px">Bienvenue, ${user.prenom} !</div>
+      <div style="font-size:14.5px;color:var(--muted);max-width:440px;margin:0 auto 24px;line-height:1.75">
+        Votre compte ${user.commerce} est prêt. Dès que votre QR Code sera installé et que vos premiers clients scanneront, vos statistiques apparaîtront ici automatiquement.
+      </div>
+      <button class="btn-save" onclick="window.location.href='onboarding.html'">Voir le guide de démarrage →</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Note Google</div><div class="kpi-val" style="color:var(--muted)">—</div><div class="kpi-sub kpi-neutral">En attente de données</div></div>
+      <div class="kpi"><div class="kpi-label">Avis collectés</div><div class="kpi-val">0</div><div class="kpi-sub kpi-neutral">Aucun avis encore</div></div>
+      <div class="kpi"><div class="kpi-label">SMS envoyés</div><div class="kpi-val">0</div><div class="kpi-sub kpi-neutral">0% taux de conversion</div></div>
+      <div class="kpi"><div class="kpi-label">Clients capturés</div><div class="kpi-val">0</div><div class="kpi-sub" style="color:var(--purple)">Via QR Code</div></div>
+    </div>
+    `)
+    return
+  }
+
   set(`
   ${!p.dashboard?`<div class="locked-card"><div class="locked-icon">📊</div><div class="locked-title">Dashboard complet disponible en Pro et Premium</div><div class="locked-text">Passez au forfait Pro pour accéder aux statistiques détaillées, graphiques et rapports de performance.</div><button class="btn-upgrade" onclick="goPage('forfait',null)">Voir les forfaits →</button></div>`:''}
   <div class="kpi-grid">
@@ -743,7 +823,7 @@ function renderOverview(){
   <div class="card-2">
     <div class="card">
       <div class="card-hdr"><div class="card-title">⭐ Derniers avis</div><button class="card-action" onclick="goPage('avis',document.querySelectorAll('.sb-item')[4])">Voir tout →</button></div>
-      ${user.avis.slice(0,3).map(a=>`
+      ${user.avis.length===0?'<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun avis encore</div>':user.avis.slice(0,3).map(a=>`
       <div class="avis-item">
         <div class="avis-hdr"><span class="avis-name">${a.nom}</span><span class="avis-date">${a.date}</span></div>
         <div class="avis-stars" style="color:${a.note>=4?'var(--gold)':a.note>=3?'var(--orange)':'var(--red)'}">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)}</div>
@@ -753,13 +833,14 @@ function renderOverview(){
     </div>
     <div class="card">
       <div class="card-hdr"><div class="card-title">📱 Derniers SMS</div><button class="card-action" onclick="goPage('sms',document.querySelectorAll('.sb-item')[5])">Voir tout →</button></div>
-      ${user.sms.slice(0,4).map(s=>`
+      ${user.sms.length===0?'<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun SMS envoyé encore</div>':user.sms.slice(0,4).map(s=>`
       <div class="sms-item">
         <div><div class="sms-num">${s.num}</div><div class="sms-date">${s.date}</div></div>
         <span class="s-pill ${s.statut==='ok'?'s-ok':'s-sent'}">${s.statut==='ok'?'Avis laissé':'Envoyé'}</span>
       </div>`).join('')}
     </div>
   </div>
+  ${s.avisTotal>0?`
   <div class="card">
     <div class="card-hdr"><div class="card-title">🎯 Performance globale</div></div>
     <div class="card-3">
@@ -774,10 +855,14 @@ function renderOverview(){
         <div class="prog-bar"><div class="prog-fill" style="width:${k.pct}%;background:${k.color}"></div></div>
       </div>`).join('')}
     </div>
-  </div>`)
+  </div>`:''}`)
 }
 
 function renderActivite(){
+  if(user.newAccount && user.stats.avisTotal===0){
+    set(`<div class="card" style="text-align:center;padding:48px 28px"><div style="font-size:36px;margin-bottom:14px">⚡</div><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Aucune activité encore</div><div style="font-size:13.5px;color:var(--muted)">Vos activités (avis, SMS, réponses IA) apparaîtront ici dès que votre système commencera à fonctionner.</div></div>`)
+    return
+  }
   const acts=[
     {icon:'⭐',bg:'rgba(245,200,66,.1)',text:'Nouvel avis 5 étoiles — Marie T.',sub:'Via votre QR Code · Restaurant Le Bon Goût',time:'Il y a 2h'},
     {icon:'🤖',bg:'rgba(167,139,250,.1)',text:'Notre IA a répondu à un avis négatif',sub:'Jean P. 2★ — Réponse publiée automatiquement sur Google',time:'Il y a 5h'},
@@ -812,6 +897,10 @@ function renderActivite(){
 
 function renderAvis(){
   const s=user.stats
+  if(user.avis.length===0){
+    set(`<div class="card" style="text-align:center;padding:48px 28px"><div style="font-size:36px;margin-bottom:14px">⭐</div><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Aucun avis encore</div><div style="font-size:13.5px;color:var(--muted)">Vos avis Google apparaîtront ici dès que vos premiers clients en laisseront.</div></div>`)
+    return
+  }
   set(`
   <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
     <div class="kpi"><div class="kpi-label">Total avis</div><div class="kpi-val">${s.avisTotal}</div></div>
@@ -893,7 +982,7 @@ function renderQR(){
       ${[
         {l:'Scans ce mois',v:user.stats.clients,color:'var(--gold)'},
         {l:'Numéros capturés',v:user.stats.clients,color:'var(--green)'},
-        {l:'Taux de complétion',v:'94%',color:'var(--blue)'},
+        {l:'Taux de complétion',v:user.stats.clients>0?'94%':'—',color:'var(--blue)'},
       ].map(k=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(22,32,58,.5)"><span style="font-size:14px;color:var(--muted)">${k.l}</span><span style="font-size:16px;font-weight:700;color:${k.color}">${k.v}</span></div>`).join('')}
       <div style="margin-top:16px;font-size:13px;color:var(--muted);line-height:1.65">Votre QR Code est affiché à la caisse. Chaque scan ajoute automatiquement le client à votre base et déclenche un SMS 2h après sa visite.</div>
     </div>
@@ -912,6 +1001,10 @@ function renderQR(){
 
 function renderRapport(){
   const s=user.stats,conv=s.smsSent>0?Math.round(s.smsConv/s.smsSent*100):0
+  if(s.avisTotal===0){
+    set(`<div class="card" style="text-align:center;padding:48px 28px"><div style="font-size:36px;margin-bottom:14px">📈</div><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Pas encore de rapport disponible</div><div style="font-size:13.5px;color:var(--muted)">Votre premier rapport mensuel sera généré dès que votre système commencera à collecter des données.</div></div>`)
+    return
+  }
   set(`
   <div class="card">
     <div class="card-hdr"><div class="card-title">📈 Rapport mensuel — Juin 2026</div><button class="btn-save" onclick="alert('Téléchargement PDF...')">⬇️ Télécharger PDF</button></div>
@@ -995,7 +1088,13 @@ function renderForfait(){
       ${k===user.plan?'<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px">✓ ACTUEL</div>':''}
       <div class="plan-card-name">${p.name}</div>
       <div class="plan-card-price">${p.price}$<span style="font-size:14px;font-weight:400;color:var(--muted)">/mois</span></div>
-      ${['QR Code & capture auto','SMS automatiques','Réponses IA',p.dashboard?'Dashboard complet':'Dashboard','SMS promo mensuel','Rapport mensuel',p.recrutement?'Recrutement IA':'Recrutement IA'].map((f,i)=>`<div class="plan-card-feat ${i>2&&!([3,4,5,6].slice(0,p.dashboard?3:0+p.smsPromo?1:0+p.rapport?1:0+p.recrutement?1:0).includes(i))&&!p[['dashboard','smsPromo','rapport','recrutement'][i-3]]?'off':''}">${f}</div>`).join('')}
+      <div class="plan-card-feat">QR Code & capture auto</div>
+      <div class="plan-card-feat">SMS automatiques</div>
+      <div class="plan-card-feat">Réponses IA</div>
+      <div class="plan-card-feat ${p.dashboard?'':'off'}">Dashboard complet</div>
+      <div class="plan-card-feat ${p.smsPromo?'':'off'}">SMS promo mensuel</div>
+      <div class="plan-card-feat ${p.rapport?'':'off'}">Rapport mensuel</div>
+      <div class="plan-card-feat ${p.recrutement?'':'off'}">Recrutement IA</div>
       <button class="plan-card-btn ${k===user.plan?'current-btn':''}" onclick="${k!==user.plan?`alert('Contactez admin@fivestarai.ca pour changer de forfait.')`:''}">${k===user.plan?'Forfait actuel':p.price>cp.price?'Passer à '+p.name:'Rétrograder'}</button>
     </div>`).join('')}
   </div>
@@ -1014,14 +1113,14 @@ function renderParametres(){
   <div class="settings-section">
     <div class="settings-title">🏪 Informations du commerce</div>
     <div class="field-row">
-      <div class="field"><label>Prénom</label><input value="${user.prenom||''}"/></div>
-      <div class="field"><label>Nom</label><input value="${user.nom||''}"/></div>
+      <div class="field"><label>Prénom</label><input id="set-prenom" value="${user.prenom||''}"/></div>
+      <div class="field"><label>Nom</label><input id="set-nom" value="${user.nom||''}"/></div>
     </div>
-    <div class="field"><label>Nom du commerce</label><input value="${user.commerce}"/></div>
-    <div class="field"><label>Type de commerce</label><input value="${user.type}"/></div>
-    <div class="field"><label>Email</label><input type="email" value="${user.email}"/></div>
-    <div class="field"><label>Téléphone</label><input value="${user.tel||''}"/></div>
-    <button class="btn-save" onclick="alert('Paramètres sauvegardés!')">Sauvegarder</button>
+    <div class="field"><label>Nom du commerce</label><input id="set-commerce" value="${user.commerce}"/></div>
+    <div class="field"><label>Type de commerce</label><input id="set-type" value="${user.type}"/></div>
+    <div class="field"><label>Email</label><input type="email" value="${user.email}" disabled style="opacity:.6"/></div>
+    <div class="field"><label>Téléphone</label><input id="set-tel" value="${user.tel||''}"/></div>
+    <button class="btn-save" onclick="saveParametres()">Sauvegarder</button>
   </div>
   <div class="settings-section">
     <div class="settings-title">📱 Message SMS personnalisé</div>
@@ -1030,6 +1129,30 @@ function renderParametres(){
     </div>
     <button class="btn-save" onclick="alert('Sauvegardé!')">Sauvegarder</button>
   </div>`)
+}
+
+async function saveParametres(){
+  if(!user.id){alert('Compte démo — non sauvegardé.');return}
+  const prenom=document.getElementById('set-prenom').value.trim()
+  const nom=document.getElementById('set-nom').value.trim()
+  const commerce=document.getElementById('set-commerce').value.trim()
+  const type=document.getElementById('set-type').value.trim()
+  const tel=document.getElementById('set-tel').value.trim()
+
+  const {error} = await _sb.from('profiles').update({
+    prenom, nom, commerce, type_commerce: type, tel
+  }).eq('id', user.id)
+
+  if(error){
+    alert('Erreur lors de la sauvegarde : '+error.message)
+    return
+  }
+  user.prenom=prenom;user.nom=nom;user.commerce=commerce;user.type=type;user.tel=tel
+  document.getElementById('sb-commerce-name').textContent=commerce
+  document.getElementById('sb-commerce-type').textContent=type
+  document.getElementById('sb-user-name').textContent=prenom+' '+nom
+  document.getElementById('sb-avatar').textContent=(prenom||'U')[0].toUpperCase()
+  alert('Paramètres sauvegardés!')
 }
 
 function renderAide(){
@@ -1094,7 +1217,9 @@ function renderLocked(page){
 }
 
 async function doLogout(){
-  if(user&&user.id){await _sb.auth.signOut()}
+  if(user && user.id){
+    await _sb.auth.signOut()
+  }
   user=null
   document.getElementById('dash-page').style.display='none'
   document.getElementById('auth-page').style.display='block'
@@ -1114,13 +1239,16 @@ if(up.get('signup')==='true'){
   }
 }
 
+// Accès restreint — ex: quelqu'un essaie d'aller sur onboarding.html sans plan
 if(up.get('access')==='restricted'){
   switchTab('signup')
-  const msg=document.getElementById('auth-msg')
-  if(msg){msg.innerHTML='<div style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:var(--gold);margin-bottom:16px;text-align:center">⭐ Choisissez un forfait pour accéder à cette page.</div>'}
+  const msg = document.getElementById('auth-msg')
+  if(msg){
+    msg.innerHTML = '<div style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:var(--gold);margin-bottom:16px;text-align:center">⭐ Choisissez un forfait pour accéder à cette page.</div>'
+  }
 }
 
-// ── INIT — vérifier session au chargement ──
+// ── INIT — vérifier la session au chargement de la page ──
 initSession()
 </script>
 </body>
