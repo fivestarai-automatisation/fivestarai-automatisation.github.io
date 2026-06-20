@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FiveStar AI — Mon espace</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const _sb = window.supabase.createClient("https://teceosbjdipzvvkmxixd.supabase.co","sb_publishable_uY6yWPVgjkk9TsG1kj-smA_4Hvsa5A9")
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#050810;--surface:#090d1a;--surface2:#0e1322;--border:#16203a;--gold:#f5c842;--gold2:#d4a800;--text:#e2e6f0;--muted:#6b7591;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;--orange:#f97316}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+
+    /* ── AUTH ── */
+    .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+    .auth-glow{position:absolute;top:-10%;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(245,200,66,.055) 0%,transparent 60%);pointer-events:none}
+    .auth-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.008) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.008) 1px,transparent 1px);background-size:52px 52px}
+    .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:44px 40px;width:100%;max-width:460px;position:relative;z-index:1;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+    .auth-logo{text-align:center;margin-bottom:6px}
+    .auth-logo-text{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px}
+    .auth-logo-text span{color:var(--gold)}
+    .auth-subtitle{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px}
+    .auth-tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:24px;gap:4px}
+    .auth-tab{flex:1;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+    .auth-tab.active{background:var(--surface2);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    .auth-tab:not(.active){background:transparent;color:var(--muted)}
+    .field{margin-bottom:15px}
+    .field label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:7px}
+    .field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px 15px;color:#fff;font-size:14px;outline:none;font-family:inherit;transition:border-color .2s}
+    .field input:focus,.field select:focus{border-color:rgba(245,200,66,.35)}
+    .field select option{background:var(--surface2)}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn-auth{width:100%;background:var(--gold);color:#000;border:none;border-radius:9px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;transition:all .2s;font-family:inherit;margin-top:6px;letter-spacing:-.2px}
+    .btn-auth:hover{background:var(--gold2);transform:translateY(-1px)}
+    .btn-auth:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .auth-err{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:12px}
+    .auth-success{background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.2);color:var(--green);font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:12px;line-height:1.5}
+    .plan-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}
+    .plan-opt{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s}
+    .plan-opt.sel{border-color:var(--gold);background:rgba(245,200,66,.06)}
+    .plan-opt-name{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:2px}
+    .plan-opt.sel .plan-opt-name{color:var(--gold)}
+    .plan-opt-price{font-size:11px;color:var(--muted)}
+    .demo-hint{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 15px;margin-top:16px}
+    .demo-hint-title{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+    .demo-hint-item{font-size:12px;color:var(--muted);padding:3px 0;cursor:pointer;transition:color .2s}
+    .demo-hint-item:hover{color:var(--gold)}
+    .auth-link{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+    .auth-link a{color:var(--gold);text-decoration:none}
+    .email-confirm-screen{text-align:center;padding:20px 0}
+    .ec-icon{font-size:52px;margin-bottom:16px}
+    .ec-title{font-size:20px;font-weight:800;color:#fff;margin-bottom:10px}
+    .ec-desc{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:20px}
+    .ec-email-box{background:var(--bg);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:12px 18px;font-size:14px;color:var(--gold);font-weight:600;margin-bottom:20px;display:inline-block}
+    .ec-steps{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:left;margin-bottom:16px}
+    .ec-step{font-size:13px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}
+    .ec-step:last-child{border-bottom:none}
+    .btn-resend{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-resend:hover{border-color:var(--gold);color:var(--gold)}
+
+    /* ── DASHBOARD LAYOUT ── */
+    .dash{display:flex;min-height:100vh}
+
+    /* SIDEBAR */
+    .sidebar{width:252px;background:var(--surface);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:20;transition:transform .3s}
+    .sb-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+    .sb-logo{font-size:16px;font-weight:900;color:#fff;letter-spacing:-.4px;margin-bottom:10px}
+    .sb-logo span{color:var(--gold)}
+    .sb-commerce{font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+    .sb-type{font-size:12px;color:var(--muted);margin-bottom:8px}
+    .plan-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;letter-spacing:.3px}
+    .pt-starter{background:rgba(107,114,128,.12);color:#9ca3af;border:1px solid rgba(107,114,128,.2)}
+    .pt-pro{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.2)}
+    .pt-premium{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+    .sb-nav{flex:1;padding:8px 0}
+    .sb-section-label{font-size:10px;font-weight:700;color:#242f4a;letter-spacing:2px;text-transform:uppercase;padding:10px 20px 4px}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--muted);transition:all .15s;border-left:3px solid transparent;text-decoration:none;position:relative}
+    .sb-item:hover{color:#fff;background:rgba(255,255,255,.025)}
+    .sb-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(245,200,66,.05);font-weight:600}
+    .sb-item.locked{opacity:.35;cursor:default}
+    .sb-lock{font-size:10px;margin-left:auto;color:#2a3558}
+    .sb-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:auto}
+    .sb-new{background:rgba(34,197,94,.15);color:var(--green);font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:auto}
+    .sb-footer{padding:14px 20px;border-top:1px solid var(--border)}
+    .sb-user{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+    .sb-avatar{width:30px;height:30px;border-radius:50%;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0}
+    .sb-user-name{font-size:13px;font-weight:600;color:#fff}
+    .sb-user-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+    .logout-btn{width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s}
+    .logout-btn:hover{border-color:rgba(239,68,68,.3);color:var(--red)}
+
+    /* MAIN */
+    .main{flex:1;margin-left:252px;min-height:100vh;display:flex;flex-direction:column}
+    .topbar{height:56px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(5,8,16,.85);backdrop-filter:blur(16px);position:sticky;top:0;z-index:10;flex-shrink:0}
+    .tb-left{display:flex;align-items:center;gap:10px}
+    .tb-icon{font-size:17px}
+    .tb-title{font-size:16px;font-weight:700;color:#fff}
+    .tb-right{display:flex;align-items:center;gap:10px}
+    .tb-plan{font-size:11px}
+    .tb-notif{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .2s;position:relative}
+    .tb-notif:hover{border-color:rgba(255,255,255,.15);color:#fff}
+    .notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--red)}
+    .content{padding:24px 28px;flex:1}
+
+    /* CARDS */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px;transition:border-color .2s}
+    .card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .card-title{font-size:14px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+    .card-action{font-size:12.5px;color:var(--gold);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit;transition:opacity .2s}
+    .card-action:hover{opacity:.75}
+    .card-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+    .card-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+
+    /* KPI */
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px 15px;transition:all .2s;cursor:default}
+    .kpi:hover{border-color:rgba(245,200,66,.15);transform:translateY(-1px)}
+    .kpi-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:9px}
+    .kpi-val{font-size:26px;font-weight:900;letter-spacing:-1px;line-height:1}
+    .kpi-sub{font-size:12px;margin-top:5px;display:flex;align-items:center;gap:4px}
+    .kpi-up{color:var(--green)}.kpi-down{color:var(--red)}.kpi-neutral{color:var(--muted)}
+
+    /* PROGRESS */
+    .prog-bar{background:var(--surface2);border-radius:99px;height:6px;overflow:hidden;margin-top:8px}
+    .prog-fill{height:100%;border-radius:99px;transition:width .8s ease}
+
+    /* AVIS */
+    .avis-item{padding:14px 0;border-bottom:1px solid rgba(22,32,58,.6)}
+    .avis-item:last-child{border-bottom:none;padding-bottom:0}
+    .avis-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+    .avis-name{font-size:14px;font-weight:700;color:#fff}
+    .avis-date{font-size:11px;color:#3a4560}
+    .avis-stars{font-size:13px;margin-bottom:5px}
+    .avis-text{font-size:13px;color:var(--muted);line-height:1.55}
+    .ia-reply{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-top:9px}
+    .ia-label{font-size:9.5px;font-weight:700;color:var(--purple);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+    .ia-text{font-size:12.5px;color:var(--muted);line-height:1.55}
+    .avis-no-reply{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--orange);background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.15);border-radius:99px;padding:3px 9px;margin-top:6px}
+
+    /* SMS */
+    .sms-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(22,32,58,.6)}
+    .sms-item:last-child{border-bottom:none}
+    .sms-num{font-size:13.5px;font-weight:600;color:#fff}
+    .sms-msg{font-size:12px;color:var(--muted);margin-top:2px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sms-date{font-size:11px;color:#3a4560;margin-top:1px}
+    .s-pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+    .s-ok{background:rgba(34,197,94,.09);color:var(--green)}
+    .s-sent{background:rgba(59,130,246,.09);color:var(--blue)}
+    .s-pending{background:rgba(249,115,22,.09);color:var(--orange)}
+
+    /* LOCKED */
+    .locked-card{background:linear-gradient(135deg,rgba(26,18,0,.9),var(--surface));border:1px solid rgba(245,200,66,.18);border-radius:14px;padding:44px;text-align:center;margin-bottom:18px}
+    .locked-icon{font-size:36px;margin-bottom:14px}
+    .locked-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}
+    .locked-text{font-size:14px;color:var(--muted);margin-bottom:22px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.65}
+    .btn-upgrade{background:var(--gold);color:#000;border:none;border-radius:9px;padding:11px 26px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-upgrade:hover{background:var(--gold2)}
+
+    /* TABS */
+    .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+    .tab-btn{background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+    .tab-btn.active{background:rgba(245,200,66,.08);border-color:rgba(245,200,66,.25);color:var(--gold)}
+    .tab-btn:hover:not(.active){color:#fff;border-color:rgba(255,255,255,.1)}
+
+    /* CHARTS */
+    .mini-chart{display:flex;align-items:flex-end;gap:5px;height:56px;padding-top:4px}
+    .mc-bar{flex:1;border-radius:4px 4px 0 0;background:rgba(245,200,66,.3);transition:all .3s;cursor:pointer;position:relative}
+    .mc-bar:hover{background:rgba(245,200,66,.6)}
+    .mc-bar.current{background:var(--gold)}
+    .chart-labels{display:flex;gap:5px;margin-top:5px}
+    .chart-label{flex:1;text-align:center;font-size:9px;color:var(--muted)}
+
+    /* NOTE GAUGE */
+    .note-display{display:flex;align-items:center;gap:20px}
+    .note-big{font-size:52px;font-weight:900;letter-spacing:-2px;line-height:1}
+    .note-info{flex:1}
+    .note-stars{font-size:20px;letter-spacing:2px;margin-bottom:6px}
+    .note-change{font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+    .note-change.up{color:var(--green)}.note-change.down{color:var(--red)}
+
+    /* TABLE */
+    .data-table{width:100%;border-collapse:collapse}
+    .data-table th{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--surface2)}
+    .data-table td{font-size:13px;padding:12px 12px;border-bottom:1px solid rgba(22,32,58,.5);vertical-align:middle}
+    .data-table tr:last-child td{border-bottom:none}
+    .data-table tr:hover td{background:rgba(255,255,255,.015)}
+
+    /* FORFAIT */
+    .plan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .plan-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color .2s}
+    .plan-card.current{border-color:var(--gold)}
+    .plan-card-name{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+    .plan-card-price{font-size:26px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:12px}
+    .plan-card-feat{font-size:12.5px;color:var(--muted);padding:3px 0;display:flex;gap:6px;align-items:flex-start}
+    .plan-card-feat::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+    .plan-card-feat.off{opacity:.3}
+    .plan-card-feat.off::before{content:'—';color:var(--border)}
+    .plan-card-btn{width:100%;margin-top:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+    .plan-card-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .plan-card-btn.current-btn{background:rgba(245,200,66,.08);border-color:rgba(245,200,66,.2);color:var(--gold);cursor:default}
+
+    /* SETTINGS */
+    .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+    .settings-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+    .field-inline{display:flex;gap:10px;align-items:flex-end}
+    .field-inline .field{flex:1;margin-bottom:0}
+    .btn-save{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 22px;font-weight:700;font-size:13.5px;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-save:hover{background:var(--gold2)}
+    .btn-danger{background:transparent;border:1px solid rgba(239,68,68,.25);color:var(--red);border-radius:8px;padding:10px 20px;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-danger:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
+    .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid rgba(22,32,58,.5)}
+    .toggle-row:last-child{border-bottom:none}
+    .toggle-info{flex:1}
+    .toggle-label{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
+    .toggle-desc{font-size:12.5px;color:var(--muted)}
+    .toggle-switch{width:40px;height:22px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+    .toggle-switch.on{background:var(--green)}
+    .toggle-switch.off{background:var(--border)}
+    .toggle-switch::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;transition:left .2s}
+    .toggle-switch.on::after{left:21px}
+    .toggle-switch.off::after{left:3px}
+
+    /* ACTIVITY */
+    .activity-item{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(22,32,58,.5)}
+    .activity-item:last-child{border-bottom:none}
+    .activity-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .activity-body{flex:1}
+    .activity-text{font-size:13.5px;color:var(--text);line-height:1.45}
+    .activity-time{font-size:11px;color:var(--muted);margin-top:2px}
+
+    /* QR CODE */
+    .qr-display{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center}
+    .qr-box{width:140px;height:140px;background:#fff;border-radius:10px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#333;padding:10px;line-height:1.4}
+    .qr-label{font-size:13px;color:var(--muted);margin-bottom:12px}
+    .btn-qr{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-qr:hover{border-color:var(--gold);color:var(--gold)}
+
+    /* NOTIFICATION BELL */
+    .notif-panel{position:fixed;top:56px;right:16px;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:100;display:none}
+    .notif-panel.show{display:block}
+    .notif-hdr{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13.5px;font-weight:700;color:#fff;display:flex;justify-content:space-between}
+    .notif-item{padding:12px 16px;border-bottom:1px solid rgba(22,32,58,.5);cursor:pointer;transition:background .2s}
+    .notif-item:hover{background:rgba(255,255,255,.02)}
+    .notif-item:last-child{border-bottom:none}
+    .notif-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px}
+    .notif-desc{font-size:12px;color:var(--muted);line-height:1.4}
+    .notif-time{font-size:10.5px;color:#3a4560;margin-top:3px}
+
+    /* RESPONSIVE */
+    .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;flex-direction:column;gap:5px;justify-content:center;align-items:center}
+    .ham-btn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s}
+    .ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .ham-btn.open span:nth-child(2){opacity:0}
+    .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+    .mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:149;backdrop-filter:blur(2px)}
+    .mob-overlay.show{display:block}
+    @media(max-width:768px){
+      .ham-btn{display:flex}
+      .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:150;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 32px rgba(0,0,0,.5)}
+      .sidebar.mobile-open{transform:translateX(0)}
+      .main{margin-left:0}
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .card-2,.card-3,.plan-cards{grid-template-columns:1fr}
+      .content{padding:16px}
+      .topbar{padding:0 16px}
+    }
+
+    /* LOADING */
+    .global-loader{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .loader-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<!-- GLOBAL LOADER (pendant vérification session) -->
+<div class="global-loader" id="global-loader"><div class="loader-spin"></div></div>
+
+<!-- AUTH PAGE -->
+<div id="auth-page" style="display:none">
+  <div class="auth-wrap">
+    <div class="auth-glow"></div>
+    <div class="auth-grid"></div>
+    <div class="auth-card" id="auth-card">
+      <div class="auth-logo"><div class="auth-logo-text"><span style="margin-right:6px">⭐</span>Five<span>Star</span> AI</div></div>
+      <div class="auth-subtitle">Portail gérant</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Connexion</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Créer un compte</button>
+      </div>
+      <div id="auth-msg"></div>
+      <div id="auth-form-login">
+        <div class="field"><label>Email</label><input id="l-email" type="email" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <div class="field"><label>Mot de passe</label><input id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <button class="btn-auth" id="btn-login" onclick="doLogin()">Se connecter →</button>
+        <div class="demo-hint">
+          <div class="demo-hint-title">Comptes démo</div>
+          <div class="demo-hint-item" onclick="fillDemo('demo@restaurant.com')">🍽️ demo@restaurant.com — Forfait Pro</div>
+          <div class="demo-hint-item" onclick="fillDemo('demo@salon.com')">✂️ demo@salon.com — Forfait Starter</div>
+          <div style="font-size:11px;color:#3a4560;margin-top:6px">Mot de passe : demo123</div>
+        </div>
+      </div>
+      <div id="auth-form-signup" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>Prénom</label><input id="s-prenom" placeholder="Jean"/></div>
+          <div class="field"><label>Nom</label><input id="s-nom" placeholder="Tremblay"/></div>
+        </div>
+        <div class="field"><label>Nom du commerce</label><input id="s-commerce" placeholder="Restaurant Le Bon Goût"/></div>
+        <div class="field"><label>Type de commerce</label>
+          <select id="s-type">
+            <option value="">Sélectionnez...</option>
+            <option>Restaurant / Bar</option><option>Salon de coiffure / Spa</option>
+            <option>Gym / Studio fitness</option><option>Café / Boulangerie</option>
+            <option>Garage / Auto</option><option>Clinique / Santé</option>
+            <option>Boutique / Retail</option><option>Autre</option>
+          </select>
+        </div>
+        <div class="field"><label>Téléphone</label><input id="s-tel" type="tel" placeholder="+1 514 000-0000"/></div>
+        <div class="field"><label>Email</label><input id="s-email" type="email" placeholder="votre@email.com"/></div>
+        <div class="field"><label>Mot de passe</label><input id="s-pass" type="password" placeholder="Minimum 8 caractères"/></div>
+        <div class="field"><label>Choisir votre forfait</label>
+          <div class="plan-selector">
+            <div class="plan-opt" id="po-starter" onclick="selPlan('starter',this)"><div class="plan-opt-name">Starter</div><div class="plan-opt-price">297$/mois</div></div>
+            <div class="plan-opt sel" id="po-pro" onclick="selPlan('pro',this)"><div class="plan-opt-name">Pro</div><div class="plan-opt-price">499$/mois</div></div>
+            <div class="plan-opt" id="po-premium" onclick="selPlan('premium',this)"><div class="plan-opt-name">Premium</div><div class="plan-opt-price">599$/mois</div></div>
+          </div>
+        </div>
+        <button class="btn-auth" id="btn-signup" onclick="doSignup()">Créer mon compte →</button>
+        <div class="auth-link">En créant un compte, vous acceptez nos <a href="conditions.html">CGU</a> et notre <a href="politique.html">politique de confidentialité</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash-page" style="display:none">
+  <div class="dash">
+    <div class="mob-overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+      <div class="sb-header">
+        <div class="sb-logo"><span style="margin-right:6px">⭐</span>Five<span>Star</span> AI</div>
+        <div class="sb-commerce" id="sb-commerce-name">—</div>
+        <div class="sb-type" id="sb-commerce-type">—</div>
+        <div id="sb-plan-tag"></div>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-section-label">Vue d'ensemble</div>
+        <div class="sb-item active" onclick="goPage('overview',this)"><span>📊</span> Tableau de bord</div>
+        <div class="sb-item" onclick="goPage('activite',this)"><span>⚡</span> Activité récente <span class="sb-new">Nouveau</span></div>
+        <div class="sb-section-label">Réputation</div>
+        <div class="sb-item" onclick="goPage('avis',this)"><span>⭐</span> Avis Google</div>
+        <div class="sb-item" onclick="goPage('sms',this)"><span>📱</span> SMS envoyés</div>
+        <div class="sb-item" onclick="goPage('qrcode',this)"><span>📲</span> Mon QR Code</div>
+        <div class="sb-section-label">Pro & Premium</div>
+        <div class="sb-item" id="nav-rapport" onclick="goPage('rapport',this)"><span>📈</span> Rapport mensuel</div>
+        <div class="sb-item" id="nav-smsPromo" onclick="goPage('smsPromo',this)"><span>📣</span> SMS promotionnel</div>
+        <div class="sb-section-label">Premium</div>
+        <div class="sb-item" id="nav-recrutement" onclick="goPage('recrutement',this)"><span>👥</span> Recrutement IA</div>
+        <div class="sb-section-label">Démarrage</div>
+        <div class="sb-item" onclick="window.location.href='onboarding.html'"><span>🚀</span> Guide de démarrage</div>
+        <div class="sb-item" onclick="goPage('lien',this)"><span>🔗</span> Mon lien d'avis</div>
+        <div class="sb-section-label">Compte</div>
+        <div class="sb-item" onclick="goPage('forfait',this)"><span>💳</span> Mon forfait</div>
+        <div class="sb-item" onclick="goPage('parametres',this)"><span>⚙️</span> Paramètres</div>
+        <div class="sb-item" onclick="goPage('aide',this)"><span>💬</span> Aide & support</div>
+        <div class="sb-item" onclick="window.location.href='annulation.html'"><span>❌</span> Annuler</div>
+      </div>
+      <div class="sb-footer">
+        <div class="sb-user">
+          <div class="sb-avatar" id="sb-avatar">?</div>
+          <div><div class="sb-user-name" id="sb-user-name">—</div><div class="sb-user-email" id="sb-user-email">—</div></div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="tb-left">
+          <button class="ham-btn" id="ham-btn" onclick="toggleSidebar()" aria-label="Menu">
+            <span></span><span></span><span></span>
+          </button>
+          <span class="tb-icon" id="tb-icon">📊</span>
+          <span class="tb-title" id="tb-title">Tableau de bord</span>
+        </div>
+        <div class="tb-right">
+          <div class="plan-tag tb-plan" id="tb-plan"></div>
+          <div class="tb-notif" onclick="toggleNotif()" id="notif-btn">🔔<div class="notif-dot" id="notif-dot"></div></div>
+        </div>
+      </div>
+      <div class="content" id="page-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-hdr"><span>Notifications</span><span style="font-size:12px;color:var(--gold);cursor:pointer" onclick="toggleNotif()">Tout lire</span></div>
+  <div id="notif-list"></div>
+</div>
+
+<script>
+// ── SIDEBAR MOBILE ──
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar')
+  const ov=document.getElementById('mob-overlay')
+  const btn=document.getElementById('ham-btn')
+  const isOpen=sb.classList.contains('mobile-open')
+  sb.classList.toggle('mobile-open',!isOpen)
+  ov.classList.toggle('show',!isOpen)
+  btn.classList.toggle('open',!isOpen)
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('mobile-open')
+  document.getElementById('mob-overlay').classList.remove('show')
+  document.getElementById('ham-btn').classList.remove('open')
+}
+
+// ── DONNÉES ──
+const PLANS={
+  starter:{name:'Starter',price:297,tag:'pt-starter',dashboard:false,rapport:false,smsPromo:false,recrutement:false},
+  pro:{name:'Pro',price:499,tag:'pt-pro',dashboard:true,rapport:true,smsPromo:true,recrutement:false},
+  premium:{name:'Premium',price:599,tag:'pt-premium',dashboard:true,rapport:true,smsPromo:true,recrutement:true},
+}
+
+// Comptes démo (raccourci local, ne touchent pas Supabase)
+const DEMOS={
+  'demo@restaurant.com':{
+    pass:'demo123',prenom:'Marco',nom:'Rossi',commerce:'Restaurant Le Bon Goût',type:'Restaurant',tel:'+1 514 555-0101',plan:'pro',newAccount:false,
+    stats:{noteGoogle:4.6,noteAvant:3.9,avisTotal:47,avisPos:43,avisNeg:4,smsSent:234,smsConv:47,clients:234,moisActif:3},
+    avis:[
+      {nom:'Marie T.',note:5,texte:'Service impeccable, je reviendrai sans hésiter!',date:'Il y a 2h',rep:null,source:'SMS FiveStar AI'},
+      {nom:'Jean P.',note:2,texte:'Attente de 40 minutes pour être servi. Vraiment décevant pour un samedi soir.',date:'Il y a 5h',rep:'Bonjour Jean, nous sommes sincèrement désolés de votre expérience ce soir-là. Le temps d\'attente était effectivement trop long et ce n\'est pas l\'expérience que nous souhaitons offrir. Nous avons revu notre organisation en salle. Nous espérons vous revoir pour vous montrer le meilleur de nous-mêmes.',source:'Direct Google'},
+      {nom:'Sophie L.',note:5,texte:'Excellent repas, ambiance chaleureuse et service parfait. Un de mes restaurants préférés!',date:'Hier',rep:null,source:'SMS FiveStar AI'},
+      {nom:'Marc R.',note:4,texte:'Très bon repas dans l\'ensemble. La carte des vins est impressionnante.',date:'Il y a 2 jours',rep:null,source:'SMS FiveStar AI'},
+      {nom:'Isabelle D.',note:1,texte:'Commande complètement ratée, plat froid et serveur impoli.',date:'Il y a 3 jours',rep:'Bonjour Isabelle, votre retour nous touche profondément. Nous ne tolérons pas ce type d\'expérience et avons adressé la situation avec notre équipe. Nous aimerions vous offrir une visite de compensation pour vous montrer notre vrai niveau de service.',source:'Direct Google'},
+    ],
+    sms:[
+      {num:'+1 514 ***-**67',msg:'Merci de votre visite! Laissez-nous un avis ⭐',statut:'ok',date:'Aujourd\'hui 14:32'},
+      {num:'+1 438 ***-**12',msg:'Merci de votre visite! Laissez-nous un avis ⭐',statut:'sent',date:'Aujourd\'hui 12:18'},
+      {num:'+1 514 ***-**89',msg:'Merci de votre visite! Laissez-nous un avis ⭐',statut:'ok',date:'Hier 19:45'},
+      {num:'+1 514 ***-**23',msg:'Merci de votre visite! Laissez-nous un avis ⭐',statut:'ok',date:'Hier 16:20'},
+      {num:'+1 450 ***-**78',msg:'Merci de votre visite! Laissez-nous un avis ⭐',statut:'sent',date:'Hier 11:05'},
+    ],
+    chartData:[0,12,18,28,35,47],
+    notifs:[
+      {icon:'⭐',title:'Nouvel avis 5 étoiles',desc:'Marie T. vient de laisser un avis',time:'Il y a 2h',color:'rgba(245,200,66,.1)'},
+      {icon:'⚠️',title:'Avis négatif reçu',desc:'Jean P. — 2 étoiles. Notre IA a répondu automatiquement.',time:'Il y a 5h',color:'rgba(239,68,68,.1)'},
+      {icon:'📱',title:'47 SMS envoyés ce mois',desc:'Taux de conversion : 20%',time:'Hier',color:'rgba(59,130,246,.1)'},
+    ]
+  },
+  'demo@salon.com':{
+    pass:'demo123',prenom:'Sandra',nom:'Leblanc',commerce:'Salon Bella Vita',type:'Salon de coiffure',tel:'+1 450 555-0202',plan:'starter',newAccount:false,
+    stats:{noteGoogle:4.3,noteAvant:3.7,avisTotal:18,avisPos:16,avisNeg:2,smsSent:89,smsConv:18,clients:89,moisActif:2},
+    avis:[
+      {nom:'Lucie M.',note:5,texte:'Coupe parfaite, je suis ravie! Je reviendrai certainement.',date:'Il y a 3h',rep:null,source:'SMS FiveStar AI'},
+      {nom:'Anna K.',note:1,texte:'Pas du tout satisfaite du résultat. Rien à voir avec ce que je voulais.',date:'Il y a 8h',rep:'Bonjour Anna, nous sommes désolés que le résultat ne vous ait pas satisfaite. Chaque cliente mérite de partir heureuse. Contactez-nous pour qu\'on arrange cela gratuitement.',source:'Direct Google'},
+    ],
+    sms:[{num:'+1 514 ***-**34',msg:'Merci de votre visite! Laissez-nous un avis ⭐',statut:'ok',date:'Aujourd\'hui 11:20'}],
+    chartData:[0,3,7,11,15,18],
+    notifs:[
+      {icon:'⭐',title:'Nouvel avis 5 étoiles',desc:'Lucie M. vient de laisser un avis',time:'Il y a 3h',color:'rgba(245,200,66,.1)'},
+      {icon:'⚠️',title:'Avis négatif — réponse IA envoyée',desc:'Anna K. — 1 étoile',time:'Il y a 8h',color:'rgba(239,68,68,.1)'},
+    ]
+  }
+}
+
+let user=null
+let selectedPlan='pro'
+let notifOpen=false
+
+// ════════════════════════════════════════════════════
+// SESSION — vérifie si l'utilisateur est déjà connecté
+// (utile au retour du lien de confirmation email)
+// ════════════════════════════════════════════════════
+async function initSession(){
+  try{
+    const {data,error} = await _sb.auth.getSession()
+    if(data && data.session && data.session.user){
+      await loadProfileAndLaunch(data.session.user)
+      document.getElementById('global-loader').style.display='none'
+      return
+    }
+  }catch(e){
+    console.log('Aucune session active', e)
+  }
+  document.getElementById('global-loader').style.display='none'
+  document.getElementById('auth-page').style.display='block'
+}
+
+async function loadProfileAndLaunch(authUser){
+  const {data:profile, error} = await _sb.from('profiles').select('*').eq('id', authUser.id).single()
+  if(error || !profile){
+    console.log('Profil introuvable pour cet utilisateur', error)
+    document.getElementById('auth-page').style.display='block'
+    return
+  }
+  user = buildUserFromProfile(profile)
+  document.getElementById('dash-page').style.display='block'
+  launchDash()
+}
+
+function buildUserFromProfile(profile){
+  return {
+    id: profile.id,
+    email: profile.email,
+    prenom: profile.prenom,
+    nom: profile.nom,
+    commerce: profile.commerce,
+    type: profile.type_commerce,
+    tel: profile.tel,
+    plan: profile.plan || 'starter',
+    newAccount: true,
+    stats:{noteGoogle:0,noteAvant:0,avisTotal:0,avisPos:0,avisNeg:0,smsSent:0,smsConv:0,clients:0,moisActif:0},
+    avis:[],
+    sms:[],
+    chartData:[0,0,0,0,0,0],
+    notifs:[]
+  }
+}
+
+// ── AUTH ──
+function switchTab(tab){
+  document.getElementById('auth-form-login').style.display=tab==='login'?'block':'none'
+  document.getElementById('auth-form-signup').style.display=tab==='signup'?'block':'none'
+  document.getElementById('tab-login').classList.toggle('active',tab==='login')
+  document.getElementById('tab-signup').classList.toggle('active',tab==='signup')
+  document.getElementById('auth-msg').innerHTML=''
+}
+
+function selPlan(p,el){
+  selectedPlan=p
+  document.querySelectorAll('.plan-opt').forEach(x=>x.classList.remove('sel'))
+  el.classList.add('sel')
+}
+
+function fillDemo(email){
+  switchTab('login')
+  document.getElementById('l-email').value=email
+  document.getElementById('l-pass').value='demo123'
+}
+
+function showMsg(msg,type='err'){
+  document.getElementById('auth-msg').innerHTML=`<div class="auth-${type}">${msg}</div>`
+}
+
+// ════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim()
+  const pass=document.getElementById('l-pass').value
+
+  if(!email||!pass){showMsg('Veuillez entrer votre email et mot de passe.');return}
+
+  // 1. Comptes démo (raccourci local — pas de Supabase)
+  const acc=DEMOS[email]
+  if(acc && acc.pass===pass){
+    user={email,...acc}
+    document.getElementById('dash-page').style.display='block'
+    launchDash()
+    return
+  }
+
+  // 2. Vrai compte Supabase
+  const btn=document.getElementById('btn-login')
+  btn.disabled=true
+  btn.textContent='Connexion...'
+
+  const {data, error} = await _sb.auth.signInWithPassword({email, password: pass})
+
+  if(error){
+    btn.disabled=false
+    btn.textContent='Se connecter →'
+    if(error.message.includes('Email not confirmed')){
+      showMsg('Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte de réception (et vos spams).')
+    }else{
+      showMsg('Email ou mot de passe incorrect.')
+    }
+    return
+  }
+
+  const {data:profile, error:profileError} = await _sb.from('profiles').select('*').eq('id', data.user.id).single()
+
+  if(profileError || !profile){
+    btn.disabled=false
+    btn.textContent='Se connecter →'
+    showMsg('Profil introuvable. Contactez le support : admin@fivestarai.ca')
+    return
+  }
+
+  user = buildUserFromProfile(profile)
+  document.getElementById('dash-page').style.display='block'
+  launchDash()
+}
+
+// ════════════════════════════════════════════════════
+// SIGNUP
+// ════════════════════════════════════════════════════
+async function doSignup(){
+  const prenom=document.getElementById('s-prenom').value.trim()
+  const nom=document.getElementById('s-nom').value.trim()
+  const commerce=document.getElementById('s-commerce').value.trim()
+  const type=document.getElementById('s-type').value
+  const tel=document.getElementById('s-tel').value.trim()
+  const email=document.getElementById('s-email').value.trim()
+  const pass=document.getElementById('s-pass').value
+
+  if(!prenom||!nom||!commerce||!type||!email||!pass){showMsg('Veuillez remplir tous les champs.');return}
+  if(pass.length<8){showMsg('Le mot de passe doit contenir au moins 8 caractères.');return}
+  if(!email.includes('@')){showMsg('Adresse email invalide.');return}
+
+  const btn=document.getElementById('btn-signup')
+  btn.disabled=true
+  btn.textContent='Création en cours...'
+  showMsg('') // clear
+
+  const p=PLANS[selectedPlan]
+
+  // 1. Créer le compte Auth — le trigger SQL on_auth_user_created
+  // crée automatiquement la ligne profiles à partir de ces métadonnées.
+  // Resend envoie l'email de confirmation automatiquement.
+  const {data:authData, error:authError} = await _sb.auth.signUp({
+    email: email,
+    password: pass,
+    options:{
+      emailRedirectTo: 'https://fivestarai.ca/confirm.html',
+      data:{
+        prenom: prenom,
+        nom: nom,
+        commerce: commerce,
+        type_commerce: type,
+        tel: tel,
+        plan: selectedPlan,
+        forfait_nom: p.name,
+        forfait_prix: p.price
+      }
+    }
+  })
+
+  if(authError){
+    btn.disabled=false
+    btn.textContent='Créer mon compte →'
+    if(authError.message.includes('already registered') || authError.message.includes('User already registered')){
+      showMsg('Un compte existe déjà avec cet email. <a href="#" onclick="switchTab(\'login\');return false" style="color:var(--gold)">Se connecter →</a>','err')
+    }else{
+      showMsg('Erreur lors de la création du compte : '+authError.message)
+    }
+    return
+  }
+
+  if(!authData.user){
+    btn.disabled=false
+    btn.textContent='Créer mon compte →'
+    showMsg('Erreur inattendue lors de la création du compte. Réessayez ou contactez admin@fivestarai.ca')
+    return
+  }
+
+  // 2. Afficher l'écran de confirmation email
+  document.getElementById('auth-card').innerHTML=`
+    <div class="email-confirm-screen">
+      <div class="ec-icon">📧</div>
+      <div class="ec-title">Confirmez votre adresse email</div>
+      <div class="ec-desc">Nous avons envoyé un lien de confirmation à :</div>
+      <div class="ec-email-box">${email}</div>
+      <div class="ec-steps">
+        <div class="ec-step"><span style="color:var(--green)">✅</span> Compte créé — ${commerce} · Forfait ${p.name}</div>
+        <div class="ec-step"><span style="color:var(--gold)">📧</span> Email de confirmation envoyé</div>
+        <div class="ec-step"><span style="color:var(--muted)">📞</span> Un fondateur vous contacte dans les 24h</div>
+        <div class="ec-step"><span style="color:var(--muted)">🚀</span> Setup en 10 minutes · Résultats cette semaine</div>
+      </div>
+      <button class="btn-resend" onclick="resendEmail('${email}')">Renvoyer l'email</button>
+      <div style="margin-top:16px;font-size:13px;color:var(--muted)">Déjà confirmé ? <span style="color:var(--gold);cursor:pointer" onclick="location.reload()">Se connecter →</span></div>
+      <div style="margin-top:10px;font-size:12px;color:#3a4560">Vérifiez aussi vos courriers indésirables (spam)</div>
+    </div>`
+}
+
+async function resendEmail(email){
+  const {error} = await _sb.auth.resend({type:'signup', email: email})
+  if(error){
+    alert('Erreur lors du renvoi : '+error.message)
+  }else{
+    alert('Email de confirmation renvoyé à '+email)
+  }
+}
+
+// ── DASHBOARD ──
+function launchDash(){
+  document.getElementById('auth-page').style.display='none'
+  document.getElementById('dash-page').style.display='block'
+  const p=PLANS[user.plan]
+
+  // Sidebar
+  document.getElementById('sb-commerce-name').textContent=user.commerce
+  document.getElementById('sb-commerce-type').textContent=user.type
+  document.getElementById('sb-plan-tag').innerHTML=`<div class="plan-tag ${p.tag}">${p.name}</div>`
+  document.getElementById('sb-avatar').textContent=(user.prenom||'U')[0].toUpperCase()
+  document.getElementById('sb-user-name').textContent=(user.prenom||'')+' '+(user.nom||'')
+  document.getElementById('sb-user-email').textContent=user.email
+  document.getElementById('tb-plan').innerHTML=`<span class="${p.tag}">${p.name}</span>`
+  document.getElementById('tb-plan').className='plan-tag tb-plan '+p.tag
+
+  // Lock/unlock sidebar items
+  if(!p.rapport){document.getElementById('nav-rapport').classList.add('locked');document.getElementById('nav-rapport').innerHTML+='<span class="sb-lock">🔒</span>'}
+  if(!p.smsPromo){document.getElementById('nav-smsPromo').classList.add('locked');document.getElementById('nav-smsPromo').innerHTML+='<span class="sb-lock">🔒</span>'}
+  if(!p.recrutement){document.getElementById('nav-recrutement').classList.add('locked');document.getElementById('nav-recrutement').innerHTML+='<span class="sb-lock">🔒</span>'}
+
+  // Notifications
+  renderNotifs()
+  goPage('overview',document.querySelector('.sb-item'))
+}
+
+function renderNotifs(){
+  const n=user.notifs||[]
+  document.getElementById('notif-dot').style.display=n.length?'block':'none'
+  document.getElementById('notif-list').innerHTML=n.map(x=>`
+    <div class="notif-item">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="width:30px;height:30px;border-radius:8px;background:${x.color};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${x.icon}</div>
+        <div><div class="notif-title">${x.title}</div><div class="notif-desc">${x.desc}</div><div class="notif-time">${x.time}</div></div>
+      </div>
+    </div>`).join('')||'<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted)">Aucune notification</div>'
+}
+
+function toggleNotif(){
+  notifOpen=!notifOpen
+  document.getElementById('notif-panel').classList.toggle('show',notifOpen)
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#notif-btn')&&!e.target.closest('#notif-panel'))document.getElementById('notif-panel').classList.remove('show')})
+
+// ── NAVIGATION ──
+const pageIcons={overview:'📊',activite:'⚡',avis:'⭐',sms:'📱',qrcode:'📲',rapport:'📈',smsPromo:'📣',recrutement:'👥',forfait:'💳',parametres:'⚙️',aide:'💬',lien:'🔗'}
+const pageTitles={overview:'Tableau de bord',activite:'Activité récente',avis:'Avis Google',sms:'SMS envoyés',qrcode:'Mon QR Code',rapport:'Rapport mensuel',smsPromo:'SMS promotionnel',recrutement:'Recrutement IA',forfait:'Mon forfait',parametres:'Paramètres',aide:'Aide & support',lien:'Mon lien d\'avis'}
+
+function goPage(page,el){
+  const p=PLANS[user.plan]
+  if((page==='rapport'&&!p.rapport)||(page==='smsPromo'&&!p.smsPromo)||(page==='recrutement'&&!p.recrutement)){
+    renderLocked(page);
+    updateNav(el,page);return
+  }
+  updateNav(el,page)
+  const renders={overview:renderOverview,activite:renderActivite,avis:renderAvis,sms:renderSMS,qrcode:renderQR,rapport:renderRapport,smsPromo:renderSMSPromo,recrutement:renderRecrutement,forfait:renderForfait,parametres:renderParametres,aide:renderAide,lien:renderLien}
+  if(renders[page])renders[page]()
+}
+
+function updateNav(el,page){
+  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'))
+  if(el)el.classList.add('active')
+  document.getElementById('tb-icon').textContent=pageIcons[page]||'📊'
+  document.getElementById('tb-title').textContent=pageTitles[page]||'Dashboard'
+}
+
+// ── PAGES ──
+function set(html){document.getElementById('page-content').innerHTML=html}
+
+function renderOverview(){
+  const s=user.stats,p=PLANS[user.plan]
+  const conv=s.smsSent>0?Math.round(s.smsConv/s.smsSent*100):0
+  const chartMax=Math.max(...(user.chartData||[1]),1)
+
+  if(user.newAccount && s.avisTotal===0 && s.smsSent===0){
+    set(`
+    ${!p.dashboard?`<div class="locked-card"><div class="locked-icon">📊</div><div class="locked-title">Dashboard complet disponible en Pro et Premium</div><div class="locked-text">Passez au forfait Pro pour accéder aux statistiques détaillées, graphiques et rapports de performance.</div><button class="btn-upgrade" onclick="goPage('forfait',null)">Voir les forfaits →</button></div>`:''}
+    <div class="card" style="text-align:center;padding:48px 28px">
+      <div style="font-size:42px;margin-bottom:16px">🚀</div>
+      <div style="font-size:19px;font-weight:800;color:#fff;margin-bottom:10px">Bienvenue, ${user.prenom} !</div>
+      <div style="font-size:14.5px;color:var(--muted);max-width:440px;margin:0 auto 24px;line-height:1.75">
+        Votre compte ${user.commerce} est prêt. Dès que votre QR Code sera installé et que vos premiers clients scanneront, vos statistiques apparaîtront ici automatiquement.
+      </div>
+      <button class="btn-save" onclick="window.location.href='onboarding.html'">Voir le guide de démarrage →</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Note Google</div><div class="kpi-val" style="color:var(--muted)">—</div><div class="kpi-sub kpi-neutral">En attente de données</div></div>
+      <div class="kpi"><div class="kpi-label">Avis collectés</div><div class="kpi-val">0</div><div class="kpi-sub kpi-neutral">Aucun avis encore</div></div>
+      <div class="kpi"><div class="kpi-label">SMS envoyés</div><div class="kpi-val">0</div><div class="kpi-sub kpi-neutral">0% taux de conversion</div></div>
+      <div class="kpi"><div class="kpi-label">Clients capturés</div><div class="kpi-val">0</div><div class="kpi-sub" style="color:var(--purple)">Via QR Code</div></div>
+    </div>
+    `)
+    return
+  }
+
+  set(`
+  ${!p.dashboard?`<div class="locked-card"><div class="locked-icon">📊</div><div class="locked-title">Dashboard complet disponible en Pro et Premium</div><div class="locked-text">Passez au forfait Pro pour accéder aux statistiques détaillées, graphiques et rapports de performance.</div><button class="btn-upgrade" onclick="goPage('forfait',null)">Voir les forfaits →</button></div>`:''}
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Note Google</div><div class="kpi-val" style="color:var(--gold)">${s.noteGoogle||'—'} ⭐</div><div class="kpi-sub kpi-up">↑ +${s.noteAvant?(s.noteGoogle-s.noteAvant).toFixed(1):0} depuis le début</div></div>
+    <div class="kpi"><div class="kpi-label">Avis collectés</div><div class="kpi-val">${s.avisTotal}</div><div class="kpi-sub kpi-up">${s.avisPos} positifs · ${s.avisNeg} négatifs</div></div>
+    <div class="kpi"><div class="kpi-label">SMS envoyés</div><div class="kpi-val">${s.smsSent}</div><div class="kpi-sub kpi-neutral">${conv}% taux de conversion</div></div>
+    <div class="kpi"><div class="kpi-label">Clients capturés</div><div class="kpi-val">${s.clients}</div><div class="kpi-sub" style="color:var(--purple)">Via QR Code</div></div>
+  </div>
+  <div class="card-2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">📈 Progression note Google</div></div>
+      <div class="note-display">
+        <div class="note-big" style="color:var(--gold)">${s.noteGoogle||0}</div>
+        <div class="note-info">
+          <div class="note-stars">${'★'.repeat(Math.round(s.noteGoogle))}${'☆'.repeat(5-Math.round(s.noteGoogle))}</div>
+          <div class="note-change up">↑ +${(s.noteGoogle-s.noteAvant).toFixed(1)} depuis le début</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">${s.moisActif} mois avec FiveStar AI</div>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px"><span>Avant FiveStar AI : ${s.noteAvant} ⭐</span><span>Objectif : 5.0 ⭐</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min((s.noteGoogle-s.noteAvant)/(5-s.noteAvant)*100,100)}%;background:linear-gradient(90deg,var(--gold),var(--green))"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">📊 Avis par mois</div></div>
+      <div class="mini-chart">
+        ${(user.chartData||[0,0,0,0,0,0]).map((v,i,arr)=>`<div class="mc-bar ${i===arr.length-1?'current':''}" style="height:${chartMax>0?Math.max(v/chartMax*100,4):4}%" title="${v} avis"></div>`).join('')}
+      </div>
+      <div class="chart-labels">
+        ${['Jan','Fév','Mar','Avr','Mai','Juin'].map(m=>`<div class="chart-label">${m}</div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="card-2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">⭐ Derniers avis</div><button class="card-action" onclick="goPage('avis',document.querySelectorAll('.sb-item')[4])">Voir tout →</button></div>
+      ${user.avis.length===0?'<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun avis encore</div>':user.avis.slice(0,3).map(a=>`
+      <div class="avis-item">
+        <div class="avis-hdr"><span class="avis-name">${a.nom}</span><span class="avis-date">${a.date}</span></div>
+        <div class="avis-stars" style="color:${a.note>=4?'var(--gold)':a.note>=3?'var(--orange)':'var(--red)'}">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)}</div>
+        <div class="avis-text">${a.texte}</div>
+        ${a.rep?`<div class="ia-reply"><div class="ia-label">Réponse IA automatique</div><div class="ia-text">${a.rep.substring(0,100)}...</div></div>`:''}
+      </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">📱 Derniers SMS</div><button class="card-action" onclick="goPage('sms',document.querySelectorAll('.sb-item')[5])">Voir tout →</button></div>
+      ${user.sms.length===0?'<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucun SMS envoyé encore</div>':user.sms.slice(0,4).map(s=>`
+      <div class="sms-item">
+        <div><div class="sms-num">${s.num}</div><div class="sms-date">${s.date}</div></div>
+        <span class="s-pill ${s.statut==='ok'?'s-ok':'s-sent'}">${s.statut==='ok'?'Avis laissé':'Envoyé'}</span>
+      </div>`).join('')}
+    </div>
+  </div>
+  ${s.avisTotal>0?`
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">🎯 Performance globale</div></div>
+    <div class="card-3">
+      ${[
+        {l:'Taux de conversion SMS',v:Math.round(user.stats.smsConv/user.stats.smsSent*100)+'%',color:'var(--gold)',pct:Math.round(user.stats.smsConv/user.stats.smsSent*100)},
+        {l:'Avis positifs vs négatifs',v:Math.round(user.stats.avisPos/user.stats.avisTotal*100)+'%',color:'var(--green)',pct:Math.round(user.stats.avisPos/user.stats.avisTotal*100)},
+        {l:'Clients contactés',v:user.stats.clients+' clients',color:'var(--blue)',pct:Math.min(user.stats.clients/300*100,100)},
+      ].map(k=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${k.l}</div>
+        <div style="font-size:22px;font-weight:900;color:${k.color};letter-spacing:-0.5px;margin-bottom:8px">${k.v}</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${k.pct}%;background:${k.color}"></div></div>
+      </div>`).join('')}
+    </div>
+  </div>`:''}`)
+}
+
+function renderActivite(){
+  if(user.newAccount && user.stats.avisTotal===0){
+    set(`<div class="card" style="text-align:center;padding:48px 28px"><div style="font-size:36px;margin-bottom:14px">⚡</div><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Aucune activité encore</div><div style="font-size:13.5px;color:var(--muted)">Vos activités (avis, SMS, réponses IA) apparaîtront ici dès que votre système commencera à fonctionner.</div></div>`)
+    return
+  }
+  const acts=[
+    {icon:'⭐',bg:'rgba(245,200,66,.1)',text:'Nouvel avis 5 étoiles — Marie T.',sub:'Via votre QR Code · Restaurant Le Bon Goût',time:'Il y a 2h'},
+    {icon:'🤖',bg:'rgba(167,139,250,.1)',text:'Notre IA a répondu à un avis négatif',sub:'Jean P. 2★ — Réponse publiée automatiquement sur Google',time:'Il y a 5h'},
+    {icon:'📱',bg:'rgba(59,130,246,.1)',text:'SMS envoyé automatiquement',sub:'+1 514 ***-**12 · 2h après sa visite',time:'Il y a 6h'},
+    {icon:'📲',bg:'rgba(34,197,94,.1)',text:'Nouveau numéro capturé via QR Code',sub:'+1 438 ***-**12 · Caisse principale',time:'Il y a 6h'},
+    {icon:'⭐',bg:'rgba(245,200,66,.1)',text:'Nouvel avis 5 étoiles — Sophie L.',sub:'Via SMS de suivi',time:'Hier 19:45'},
+    {icon:'📱',bg:'rgba(59,130,246,.1)',text:'SMS envoyé — +1 514 ***-**89',sub:'Merci de votre visite! Laissez-nous un avis ⭐',time:'Hier 17:45'},
+    {icon:'🤖',bg:'rgba(167,139,250,.1)',text:'Notre IA a répondu à un avis négatif',sub:'Isabelle D. 1★ — Réponse professionnelle envoyée',time:'Il y a 3 jours'},
+    {icon:'📊',bg:'rgba(245,200,66,.08)',text:'Rapport hebdomadaire généré',sub:'47 avis · 234 SMS · Note 4.6 ⭐',time:'Dimanche 09:00'},
+  ]
+  set(`
+  <div class="tabs">
+    <button class="tab-btn active">Tout</button>
+    <button class="tab-btn" onclick="filterActs('avis',this)">⭐ Avis</button>
+    <button class="tab-btn" onclick="filterActs('sms',this)">📱 SMS</button>
+    <button class="tab-btn" onclick="filterActs('ia',this)">🤖 IA</button>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">⚡ Activité récente</div><div style="font-size:12px;color:var(--muted)">${acts.length} événements</div></div>
+    ${acts.map(a=>`
+    <div class="activity-item">
+      <div class="activity-icon" style="background:${a.bg}">${a.icon}</div>
+      <div class="activity-body">
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.sub}</div>
+      </div>
+      <div style="font-size:11px;color:#3a4560;flex-shrink:0;margin-left:12px">${a.time}</div>
+    </div>`).join('')}
+  </div>`)
+  document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=function(){document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active')})
+}
+
+function renderAvis(){
+  const s=user.stats
+  if(user.avis.length===0){
+    set(`<div class="card" style="text-align:center;padding:48px 28px"><div style="font-size:36px;margin-bottom:14px">⭐</div><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Aucun avis encore</div><div style="font-size:13.5px;color:var(--muted)">Vos avis Google apparaîtront ici dès que vos premiers clients en laisseront.</div></div>`)
+    return
+  }
+  set(`
+  <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="kpi"><div class="kpi-label">Total avis</div><div class="kpi-val">${s.avisTotal}</div></div>
+    <div class="kpi"><div class="kpi-label">Positifs (4-5★)</div><div class="kpi-val" style="color:var(--green)">${s.avisPos}</div></div>
+    <div class="kpi"><div class="kpi-label">Répondus par IA</div><div class="kpi-val" style="color:var(--purple)">${user.avis.filter(a=>a.rep).length}</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="filterAvisTab('all',this)">Tous (${user.avis.length})</button>
+    <button class="tab-btn" onclick="filterAvisTab('pos',this)">Positifs (${user.avis.filter(a=>a.note>=4).length})</button>
+    <button class="tab-btn" onclick="filterAvisTab('neg',this)">Négatifs (${user.avis.filter(a=>a.note<=3).length})</button>
+    <button class="tab-btn" onclick="filterAvisTab('rep',this)">Répondus par IA (${user.avis.filter(a=>a.rep).length})</button>
+  </div>
+  <div class="card" id="avis-list">
+    ${renderAvisList(user.avis)}
+  </div>`)
+}
+
+function renderAvisList(list){
+  return list.map(a=>`
+  <div class="avis-item">
+    <div class="avis-hdr">
+      <div><span class="avis-name">${a.nom}</span><span style="font-size:12px;color:#3a4560;margin-left:10px">${a.source||''}</span></div>
+      <span class="avis-date">${a.date}</span>
+    </div>
+    <div class="avis-stars" style="color:${a.note>=4?'var(--gold)':a.note>=3?'var(--orange)':'var(--red)'}">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)} <span style="font-size:12px;color:var(--muted)">${a.note}/5</span></div>
+    <div class="avis-text">${a.texte}</div>
+    ${a.rep?`<div class="ia-reply"><div class="ia-label">🤖 Réponse automatique de notre IA</div><div class="ia-text">${a.rep}</div></div>`:`${a.note<=3?`<div class="avis-no-reply">⚡ IA en train de rédiger une réponse...</div>`:''}`}
+  </div>`).join('')
+}
+
+function filterAvisTab(type,btn){
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'))
+  btn.classList.add('active')
+  const filtered=type==='all'?user.avis:type==='pos'?user.avis.filter(a=>a.note>=4):type==='neg'?user.avis.filter(a=>a.note<=3):user.avis.filter(a=>a.rep)
+  document.getElementById('avis-list').innerHTML=renderAvisList(filtered)
+}
+
+function renderSMS(){
+  const s=user.stats,conv=s.smsSent>0?Math.round(s.smsConv/s.smsSent*100):0
+  set(`
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="kpi-label">SMS envoyés</div><div class="kpi-val">${s.smsSent}</div></div>
+    <div class="kpi"><div class="kpi-label">Avis obtenus</div><div class="kpi-val" style="color:var(--green)">${s.smsConv}</div></div>
+    <div class="kpi"><div class="kpi-label">Taux conversion</div><div class="kpi-val" style="color:var(--gold)">${conv}%</div></div>
+    <div class="kpi"><div class="kpi-label">Clients base</div><div class="kpi-val" style="color:var(--blue)">${s.clients}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">📱 Historique des SMS</div></div>
+    ${user.sms.length===0?'<div style="text-align:center;padding:40px;color:var(--muted)">Aucun SMS encore. Les SMS partiront automatiquement 2h après chaque visite.</div>':
+    user.sms.map(s=>`
+    <div class="sms-item">
+      <div><div class="sms-num">${s.num}</div><div class="sms-msg">${s.msg}</div><div class="sms-date">${s.date}</div></div>
+      <span class="s-pill ${s.statut==='ok'?'s-ok':'s-sent'}">${s.statut==='ok'?'✓ Avis laissé':'→ Envoyé'}</span>
+    </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">✏️ Votre message SMS personnalisé</div></div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">APERÇU DU SMS</div>
+      <div style="font-size:13.5px;color:var(--text);line-height:1.6">Merci de votre visite chez <strong>${user.commerce}</strong> ! Vous avez passé un bon moment ? Ça nous ferait vraiment plaisir de lire votre avis Google ⭐ → [lien]</div>
+    </div>
+    <div style="font-size:13px;color:var(--muted)">Pour modifier votre message SMS, allez dans <span style="color:var(--gold);cursor:pointer" onclick="goPage('parametres',null)">Paramètres →</span></div>
+  </div>`)
+}
+
+function renderQR(){
+  set(`
+  <div class="card-2">
+    <div class="qr-display">
+      <div class="qr-box">QR Code personnalisé<br/><br/>${user.commerce}<br/><br/>Généré lors du setup</div>
+      <div class="qr-label">Votre QR Code — à afficher à la caisse</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-qr" onclick="alert('Téléchargement du QR Code...')">⬇️ Télécharger PNG</button>
+        <button class="btn-qr" onclick="alert('Téléchargement PDF...')">📄 Télécharger PDF</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-hdr"><div class="card-title">📊 Stats QR Code</div></div>
+      ${[
+        {l:'Scans ce mois',v:user.stats.clients,color:'var(--gold)'},
+        {l:'Numéros capturés',v:user.stats.clients,color:'var(--green)'},
+        {l:'Taux de complétion',v:user.stats.clients>0?'94%':'—',color:'var(--blue)'},
+      ].map(k=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(22,32,58,.5)"><span style="font-size:14px;color:var(--muted)">${k.l}</span><span style="font-size:16px;font-weight:700;color:${k.color}">${k.v}</span></div>`).join('')}
+      <div style="margin-top:16px;font-size:13px;color:var(--muted);line-height:1.65">Votre QR Code est affiché à la caisse. Chaque scan ajoute automatiquement le client à votre base et déclenche un SMS 2h après sa visite.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">💡 Conseils d'affichage</div></div>
+    <div class="card-3">
+      ${[
+        {ico:'🖨️',t:'Format recommandé',d:'10×10 cm minimum pour un scan facile'},
+        {ico:'📍',t:'Emplacement idéal',d:'À la caisse, sur les tables, ou à l\'entrée'},
+        {ico:'☀️',t:'Évitez les reflets',d:'Matière mate pour une meilleure lisibilité'},
+      ].map(x=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center"><div style="font-size:24px;margin-bottom:8px">${x.ico}</div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">${x.t}</div><div style="font-size:12px;color:var(--muted)">${x.d}</div></div>`).join('')}
+    </div>
+  </div>`)
+}
+
+function renderRapport(){
+  const s=user.stats,conv=s.smsSent>0?Math.round(s.smsConv/s.smsSent*100):0
+  if(s.avisTotal===0){
+    set(`<div class="card" style="text-align:center;padding:48px 28px"><div style="font-size:36px;margin-bottom:14px">📈</div><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Pas encore de rapport disponible</div><div style="font-size:13.5px;color:var(--muted)">Votre premier rapport mensuel sera généré dès que votre système commencera à collecter des données.</div></div>`)
+    return
+  }
+  set(`
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">📈 Rapport mensuel — Juin 2026</div><button class="btn-save" onclick="alert('Téléchargement PDF...')">⬇️ Télécharger PDF</button></div>
+    <div class="card-2" style="margin-bottom:0">
+      ${[
+        {l:'Avis collectés ce mois',v:s.avisTotal,c:'var(--gold)'},
+        {l:'Note Google actuelle',v:s.noteGoogle+' ⭐',c:'var(--green)'},
+        {l:'SMS envoyés',v:s.smsSent,c:'var(--blue)'},
+        {l:'Taux de conversion',v:conv+'%',c:'var(--purple)'},
+      ].map(k=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${k.l}</div><div style="font-size:28px;font-weight:900;color:${k.c};letter-spacing:-1px">${k.v}</div></div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px">📝 Résumé du mois</div>
+    <div style="font-size:15px;color:var(--muted);line-height:1.85">
+      Ce mois-ci, votre système FiveStar AI a collecté <strong style="color:#fff">${s.avisTotal} avis</strong> pour <strong style="color:#fff">${user.commerce}</strong>. Votre note Google est passée de <strong style="color:var(--red)">${s.noteAvant}</strong> à <strong style="color:var(--green)">${s.noteGoogle} ⭐</strong>. Sur les <strong style="color:#fff">${s.smsSent} SMS envoyés</strong>, <strong style="color:#fff">${s.smsConv} ont converti</strong> en avis Google (${conv}%). ${s.avisNeg>0?`Notre IA a répondu automatiquement aux <strong style="color:#fff">${s.avisNeg} avis négatifs</strong> en moins de 2 minutes chaque fois.`:''}
+    </div>
+  </div>`)
+}
+
+function renderSMSPromo(){
+  set(`
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">📣 SMS promotionnel mensuel</div></div>
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;color:var(--green)">
+      ✓ Base de <strong>${user.stats.clients} clients</strong> prête à recevoir votre promo. Prochain envoi automatique : <strong>1er juillet 2026</strong>
+    </div>
+    <div class="field" style="margin-bottom:16px">
+      <label style="display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Message du mois</label>
+      <textarea style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 15px;color:#fff;font-size:14px;outline:none;font-family:inherit;resize:none;transition:border-color .2s" rows="3">🍽️ Promotion juillet — -15% sur votre prochain repas ce weekend. Code : FIVESTAR15 → Réservez maintenant!</textarea>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">APERÇU</div>
+      <div style="font-size:13.5px;color:var(--text)">🍽️ Promotion juillet — -15% sur votre prochain repas ce weekend. Code : FIVESTAR15 → Réservez maintenant!</div>
+    </div>
+    <button class="btn-save" onclick="alert('SMS programmé pour le 1er juillet!')">Programmer l\'envoi →</button>
+  </div>`)
+}
+
+function renderRecrutement(){
+  const slug=(user.commerce||'commerce').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
+  set(`
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">👥 Recrutement automatisé par IA</div></div>
+    <div style="text-align:center;padding:20px 0 28px">
+      <div style="font-size:40px;margin-bottom:14px">🤖</div>
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Lien de candidature actif</div>
+      <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto 20px">Partagez ce lien. Notre IA analyse chaque candidature et vous envoie seulement les meilleurs profils.</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 18px;font-family:monospace;font-size:13px;color:var(--gold);display:inline-block;margin-bottom:16px">fivestarai.ca/apply/${slug}</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn-save" onclick="navigator.clipboard.writeText('fivestarai.ca/apply/${slug}').then(()=>alert('Lien copié!'))">📋 Copier le lien</button>
+        <button class="btn-qr" onclick="alert('Partage...')">📤 Partager</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">📋 Candidatures reçues</div></div>
+    <div style="text-align:center;padding:32px;color:var(--muted);font-size:14px">Aucune candidature reçue pour l'instant. Partagez votre lien pour commencer à recevoir des CV.</div>
+  </div>`)
+}
+
+function renderForfait(){
+  const cp=PLANS[user.plan]
+  set(`
+  <div class="card" style="background:linear-gradient(135deg,rgba(26,18,0,.8),var(--surface));border-color:rgba(245,200,66,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Forfait actuel</div>
+        <div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:4px">${cp.name}</div>
+        <div style="font-size:32px;font-weight:900;color:var(--gold)">${cp.price}$<span style="font-size:16px;font-weight:400;color:var(--muted)">/mois</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="plan-tag ${cp.tag}" style="margin-bottom:8px">${cp.name.toUpperCase()}</div>
+        <div style="font-size:12px;color:var(--muted)">Prochaine facturation : 10 juillet 2026</div>
+      </div>
+    </div>
+  </div>
+  <div class="plan-cards">
+    ${Object.entries(PLANS).map(([k,p])=>`
+    <div class="plan-card ${k===user.plan?'current':''}">
+      ${k===user.plan?'<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px">✓ ACTUEL</div>':''}
+      <div class="plan-card-name">${p.name}</div>
+      <div class="plan-card-price">${p.price}$<span style="font-size:14px;font-weight:400;color:var(--muted)">/mois</span></div>
+      <div class="plan-card-feat">QR Code & capture auto</div>
+      <div class="plan-card-feat">SMS automatiques</div>
+      <div class="plan-card-feat">Réponses IA</div>
+      <div class="plan-card-feat ${p.dashboard?'':'off'}">Dashboard complet</div>
+      <div class="plan-card-feat ${p.smsPromo?'':'off'}">SMS promo mensuel</div>
+      <div class="plan-card-feat ${p.rapport?'':'off'}">Rapport mensuel</div>
+      <div class="plan-card-feat ${p.recrutement?'':'off'}">Recrutement IA</div>
+      <button class="plan-card-btn ${k===user.plan?'current-btn':''}" onclick="${k!==user.plan?`alert('Contactez admin@fivestarai.ca pour changer de forfait.')`:''}">${k===user.plan?'Forfait actuel':p.price>cp.price?'Passer à '+p.name:'Rétrograder'}</button>
+    </div>`).join('')}
+  </div>
+  <div class="settings-section" style="margin-top:16px">
+    <div class="settings-title">💳 Facturation</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:16px">Paiements traités de façon sécurisée. Prochaine facturation : <strong style="color:#fff">10 juillet 2026</strong></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-save" onclick="alert('Redirection vers le portail de facturation...')">Gérer la facturation</button>
+      <button class="btn-danger" onclick="window.location.href='annulation.html'">Annuler l'abonnement</button>
+    </div>
+  </div>`)
+}
+
+function renderParametres(){
+  set(`
+  <div class="settings-section">
+    <div class="settings-title">🏪 Informations du commerce</div>
+    <div class="field-row">
+      <div class="field"><label>Prénom</label><input id="set-prenom" value="${user.prenom||''}"/></div>
+      <div class="field"><label>Nom</label><input id="set-nom" value="${user.nom||''}"/></div>
+    </div>
+    <div class="field"><label>Nom du commerce</label><input id="set-commerce" value="${user.commerce}"/></div>
+    <div class="field"><label>Type de commerce</label><input id="set-type" value="${user.type}"/></div>
+    <div class="field"><label>Email</label><input type="email" value="${user.email}" disabled style="opacity:.6"/></div>
+    <div class="field"><label>Téléphone</label><input id="set-tel" value="${user.tel||''}"/></div>
+    <button class="btn-save" onclick="saveParametres()">Sauvegarder</button>
+  </div>
+  <div class="settings-section">
+    <div class="settings-title">📱 Message SMS personnalisé</div>
+    <div class="field"><label>Votre message</label>
+      <textarea style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px 15px;color:#fff;font-size:14px;outline:none;font-family:inherit;resize:none" rows="3">Merci de votre visite ! Laissez-nous un avis Google ⭐ → [lien]</textarea>
+    </div>
+    <button class="btn-save" onclick="alert('Sauvegardé!')">Sauvegarder</button>
+  </div>`)
+}
+
+async function saveParametres(){
+  if(!user.id){alert('Compte démo — non sauvegardé.');return}
+  const prenom=document.getElementById('set-prenom').value.trim()
+  const nom=document.getElementById('set-nom').value.trim()
+  const commerce=document.getElementById('set-commerce').value.trim()
+  const type=document.getElementById('set-type').value.trim()
+  const tel=document.getElementById('set-tel').value.trim()
+
+  const {error} = await _sb.from('profiles').update({
+    prenom, nom, commerce, type_commerce: type, tel
+  }).eq('id', user.id)
+
+  if(error){
+    alert('Erreur lors de la sauvegarde : '+error.message)
+    return
+  }
+  user.prenom=prenom;user.nom=nom;user.commerce=commerce;user.type=type;user.tel=tel
+  document.getElementById('sb-commerce-name').textContent=commerce
+  document.getElementById('sb-commerce-type').textContent=type
+  document.getElementById('sb-user-name').textContent=prenom+' '+nom
+  document.getElementById('sb-avatar').textContent=(prenom||'U')[0].toUpperCase()
+  alert('Paramètres sauvegardés!')
+}
+
+function renderAide(){
+  set(`
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">💬 Aide & support</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:28px;margin-bottom:10px">📧</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">Email</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Réponse dans les 24h</div>
+        <a href="mailto:admin@fivestarai.ca" style="background:var(--gold);color:#000;font-weight:700;font-size:13px;padding:9px 18px;border-radius:8px;text-decoration:none;display:inline-block">admin@fivestarai.ca</a>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:28px;margin-bottom:10px">📱</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">Texto direct</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Raphaël ou Olivier</div>
+        <a href="sms:+15144979236" style="background:var(--surface);border:1px solid var(--border);color:var(--gold);font-weight:700;font-size:13px;padding:9px 18px;border-radius:8px;text-decoration:none;display:inline-block">Texter maintenant</a>
+      </div>
+    </div>
+    <div style="background:rgba(245,200,66,.04);border:1px solid rgba(245,200,66,.12);border-radius:12px;padding:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">📋 Questions fréquentes</div>
+      ${[
+        ['Mon QR Code ne fonctionne pas','Vérifiez que vous êtes bien connecté à internet et réessayez. Si le problème persiste, textez-nous.'],
+        ['Je ne vois pas mes avis','Les avis Google peuvent prendre jusqu\'à 24h avant d\'apparaître. Vérifiez aussi la section Avis Google ci-dessus.'],
+        ['Je veux changer mon message SMS','Allez dans Paramètres → Message SMS personnalisé et sauvegardez.'],
+        ['Je veux mettre à jour mes infos','Allez dans Paramètres → Informations du commerce.'],
+      ].map(([q,a]) => `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(22,32,58,.5)"><div style="font-size:13.5px;font-weight:600;color:#fff;margin-bottom:5px">${q}</div><div style="font-size:13px;color:var(--muted);line-height:1.6">${a}</div></div>`).join('')}
+    </div>
+  </div>`)
+}
+
+function renderLien(){
+  const slug=(user.commerce||'commerce').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
+  const lien = `https://fivestarai.ca/avis/${slug}`
+  set(`
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">🔗 Mon lien d'avis Google</div></div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.7">Partagez ce lien directement avec vos clients. Un clic et ils arrivent sur votre fiche Google pour laisser un avis.</p>
+    <div style="background:var(--surface2);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:14px 18px;font-family:monospace;font-size:13px;color:var(--gold);margin-bottom:16px;word-break:break-all">${lien}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+      <button class="btn-save" onclick="navigator.clipboard.writeText('${lien}').then(()=>{this.textContent='✓ Copié!';this.style.background='var(--green)';setTimeout(()=>{this.textContent='📋 Copier le lien';this.style.background=''},2000)})">📋 Copier le lien</button>
+      <a href="sms:?body=Merci%20de%20votre%20visite%20!%20Laissez-nous%20un%20avis%20Google%20%E2%AD%90%20${encodeURIComponent(lien)}" class="btn-qr" style="text-decoration:none;display:inline-flex;align-items:center">📤 Envoyer par SMS</a>
+      <a href="mailto:?subject=Laissez-nous%20un%20avis%20Google&body=Merci%20de%20votre%20visite%20!%20Votre%20avis%20nous%20aide%20beaucoup%20%E2%AD%90%20${encodeURIComponent(lien)}" class="btn-qr" style="text-decoration:none;display:inline-flex;align-items:center">✉️ Envoyer par email</a>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">💡 Comment l'utiliser</div>
+      ${[
+        ['📌','Affichez-le en story Instagram ou Facebook','Vos abonnés deviennent des ambassadeurs'],
+        ['📧','Ajoutez-le à votre signature email','Chaque email devient une opportunité d\'avis'],
+        ['🖨️','Imprimez-le sur vos reçus ou factures','Capturez les clients au moment de payer'],
+        ['💬','Envoyez-le dans vos groupes WhatsApp','Vos clients habituels adorent aider'],
+      ].map(([ico,t,d]) => `<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(22,32,58,.5)"><span style="font-size:18px;flex-shrink:0">${ico}</span><div><div style="font-size:13.5px;font-weight:600;color:#fff">${t}</div><div style="font-size:12px;color:var(--muted)">${d}</div></div></div>`).join('')}
+    </div>
+  </div>`)
+}
+
+function renderLocked(page){
+  const names={rapport:'Rapport mensuel',smsPromo:'SMS promotionnel',recrutement:'Recrutement IA'}
+  const plans={rapport:'Pro',smsPromo:'Pro',recrutement:'Premium'}
+  set(`<div class="locked-card"><div class="locked-icon">🔒</div><div class="locked-title">${names[page]||page} — Forfait ${plans[page]||'supérieur'}</div><div class="locked-text">Cette fonctionnalité est disponible à partir du forfait ${plans[page]||'supérieur'}. Passez à un forfait supérieur pour y accéder.</div><button class="btn-upgrade" onclick="goPage('forfait',null)">Voir les forfaits →</button></div>`)
+}
+
+async function doLogout(){
+  if(user && user.id){
+    await _sb.auth.signOut()
+  }
+  user=null
+  document.getElementById('dash-page').style.display='none'
+  document.getElementById('auth-page').style.display='block'
+  document.getElementById('l-email').value=''
+  document.getElementById('l-pass').value=''
+  switchTab('login')
+}
+
+const up=new URLSearchParams(window.location.search)
+if(up.get('signup')==='true'){
+  switchTab('signup')
+  const plan=up.get('plan')
+  if(plan){
+    document.querySelectorAll('.plan-opt').forEach(x=>x.classList.remove('sel'))
+    const el=document.getElementById('po-'+plan)
+    if(el){el.classList.add('sel');selectedPlan=plan}
+  }
+}
+
+// Accès restreint — ex: quelqu'un essaie d'aller sur onboarding.html sans plan
+if(up.get('access')==='restricted'){
+  switchTab('signup')
+  const msg = document.getElementById('auth-msg')
+  if(msg){
+    msg.innerHTML = '<div style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:var(--gold);margin-bottom:16px;text-align:center">⭐ Choisissez un forfait pour accéder à cette page.</div>'
+  }
+}
+
+// ── INIT — vérifier la session au chargement de la page ──
+initSession()
+</script>
+</body>
+</html>
